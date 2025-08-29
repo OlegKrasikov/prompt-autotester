@@ -3,7 +3,7 @@
 Compare prompt versions across real conversation scenarios and see the differences live. Build suites, set expectations, and iterate fast with side‑by‑side streaming output.
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/90782f5e-39ff-4d00-802f-0cc9af5648fe" width="960" height="540" hspace="10"/>
+  <img src="https://github.com/user-attachments/assets/3680c3cd-5abf-4595-a2b9-642195bfb252" width="960" height="540" hspace="10"/>
 </p>
 
 ## Features
