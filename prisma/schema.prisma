@@ -1,0 +1,260 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id
+  name          String
+  email         String
+  emailVerified Boolean
+  image         String?
+  createdAt     DateTime
+  updatedAt     DateTime
+  sessions      Session[]
+  accounts      Account[]
+  scenarios     Scenario[]
+  scenarioSuites ScenarioSuite[]
+  prompts       Prompt[]
+  apiKeys       UserApiKey[]
+  variables     Variable[]
+
+  @@unique([email])
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime
+  updatedAt DateTime
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime
+  updatedAt             DateTime
+
+  @@map("account")
+}
+
+model Verification {
+  id         String    @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime?
+  updatedAt  DateTime?
+
+  @@map("verification")
+}
+
+model Scenario {
+  id           String                 @id @default(uuid())
+  userId       String                 @map("user_id")
+  name         String
+  description  String?
+  locale       String                 @default("en")
+  seed         Int?
+  maxTurns     Int?                   @map("max_turns")
+  status       ScenarioStatus         @default(DRAFT)
+  version      Int                    @default(1)
+  tags         String[]               @default([])
+  createdAt    DateTime               @default(now()) @map("created_at")
+  updatedAt    DateTime               @updatedAt @map("updated_at")
+  
+  user         User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  turns        ScenarioTurn[]
+  expectations ScenarioExpectation[]
+  suiteItems   ScenarioSuiteItem[]
+  versions     ScenarioVersion[]
+
+  @@map("scenario")
+  @@index([userId, status, updatedAt], map: "idx_scenario_user_status_updated")
+}
+
+model ScenarioTurn {
+  id          BigInt               @id @default(autoincrement())
+  scenarioId  String               @map("scenario_id")
+  orderIndex  Int                  @map("order_index")
+  turnType    ScenarioTurnType     @map("turn_type")
+  userText    String?              @map("user_text")
+  createdAt   DateTime             @default(now()) @map("created_at")
+  updatedAt   DateTime             @updatedAt @map("updated_at")
+
+  scenario     Scenario              @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+  expectations ScenarioExpectation[]
+
+  @@unique([scenarioId, orderIndex], name: "idx_turn_unique_order")
+  @@map("scenario_turn")
+}
+
+model ScenarioExpectation {
+  id              BigInt              @id @default(autoincrement())
+  scenarioId      String              @map("scenario_id")
+  turnId          BigInt              @map("turn_id")
+  expectationKey  String              @map("expectation_key")
+  expectationType ExpectationType     @map("expectation_type")
+  argsJson        Json                @default("{}") @map("args_json")
+  weight          Int?
+  createdAt       DateTime            @default(now()) @map("created_at")
+  updatedAt       DateTime            @updatedAt @map("updated_at")
+
+  scenario Scenario     @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+  turn     ScenarioTurn @relation(fields: [turnId], references: [id], onDelete: Cascade)
+
+  @@map("scenario_expectation")
+}
+
+model ScenarioVersion {
+  versionId     BigInt   @id @default(autoincrement()) @map("version_id")
+  scenarioId    String   @map("scenario_id")
+  versionNumber Int      @map("version_number")
+  payload       Json
+  createdAt     DateTime @default(now()) @map("created_at")
+  createdBy     String?  @map("created_by")
+
+  scenario Scenario @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+
+  @@unique([scenarioId, versionNumber], name: "idx_scenario_version_unique")
+  @@map("scenario_version")
+}
+
+model ScenarioSuite {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  name        String
+  description String?
+  tags        String[] @default([])
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user  User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items ScenarioSuiteItem[]
+
+  @@map("scenario_suite")
+}
+
+model ScenarioSuiteItem {
+  suiteId     String @map("suite_id")
+  scenarioId  String @map("scenario_id")
+  orderIndex  Int    @map("order_index")
+
+  suite    ScenarioSuite @relation(fields: [suiteId], references: [id], onDelete: Cascade)
+  scenario Scenario      @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+
+  @@id([suiteId, scenarioId])
+  @@map("scenario_suite_item")
+}
+
+enum ScenarioStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+
+  @@map("scenario_status")
+}
+
+enum ScenarioTurnType {
+  USER
+  EXPECT
+
+  @@map("scenario_turn_type")
+}
+
+enum ExpectationType {
+  MUST_CONTAIN
+  MUST_CONTAIN_ANY
+  MUST_NOT_CONTAIN
+  REGEX
+  SEMANTIC_ASSERT
+
+  @@map("expectation_type")
+}
+
+model UserApiKey {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  provider  String   // 'openai', 'anthropic', etc.
+  keyName   String   @map("key_name") // Display name for the key
+  encryptedKey String @map("encrypted_key") // Encrypted API key
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, provider], name: "idx_user_provider_unique")
+  @@map("user_api_key")
+  @@index([userId, isActive, provider], map: "idx_userapi_user_active_provider")
+}
+
+model Prompt {
+  id          String       @id @default(uuid())
+  userId      String       @map("user_id")
+  name        String
+  description String?
+  content     String       @db.Text
+  status      PromptStatus @default(DRAFT)
+  tags        String[]     @default([])
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("prompt")
+  @@index([userId, status, updatedAt], map: "idx_prompt_user_status_updated")
+}
+
+enum PromptStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+
+  @@map("prompt_status")
+}
+
+model Variable {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  key         String
+  value       String   @db.Text
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, key], name: "idx_user_variable_unique")
+  @@map("variable")
+  @@index([userId, updatedAt], map: "idx_variable_user_updated")
+}

@@ -1,0 +1,34 @@
+# Design System
+
+Shared tokens and components used across the app.
+
+## Tokens
+
+- Defined in `src/app/globals.css` (colors, radii, shadows)
+- Use CSS custom properties via Tailwind arbitrary values (e.g., `bg-[color:var(--color-surface)]`)
+
+## Core UI Components
+
+- `src/components/ui/Card.tsx`: Card with variants and padding options
+- `src/components/ui/Button.tsx`: Variants (`primary`, `secondary`, `ghost`, `danger`, `success`) and sizes (`sm`, `md`, `lg`)
+- `src/components/ui/Input.tsx`: Labeled input with error state
+- `src/components/ui/Select.tsx`: Styled select with label
+- `src/components/ui/Textarea.tsx`: Labeled textarea
+- `src/components/ui/Spinner.tsx`: Loading indicator (`sm`, `md`, `lg`)
+- `src/components/ui/Modal.tsx`: Base modal primitives
+- `src/components/ui/ConfirmationModal.tsx`: Confirm dialog
+- `src/components/ui/AlertModal.tsx`: Alert/info dialog
+
+## Hooks & Utilities
+
+- `src/hooks/useModal.ts`: `useModal`, `useConfirmModal`, `useAlertModal`
+- `src/utils/formatMessage.tsx`: Multiline/compact message formatting
+
+## Guidelines
+
+- Use tokens; avoid hardcoded colors/sizes
+- Reuse component variants; avoid custom one-offs
+- Keep page structure consistent; prefer Card sections
+- Provide loading, error, and disabled states for actions
+- Ensure accessibility (labels, roles, focus, contrast)
+

@@ -1,0 +1,5 @@
+* text=auto eol=lf
+
+# Ensure shell scripts keep executable bit if any are added later
+*.sh linguist-language=Shell
+
