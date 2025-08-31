@@ -42,7 +42,6 @@ export function PromptPicker({ value, onChange, error }: PromptPickerProps) {
     onChange(selectedPromptId, selectedPrompt?.content || '');
   };
 
-
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">

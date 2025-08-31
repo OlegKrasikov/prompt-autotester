@@ -18,7 +18,6 @@ export function ConversationView({
   loading: _loading,
   isStreaming,
 }: ConversationViewProps) {
-
   return (
     <div className="flex h-full flex-col gap-2 sm:gap-3">
       <h3 className="flex items-center gap-1 text-xs font-medium text-[color:var(--color-foreground)] sm:gap-2 sm:text-sm">

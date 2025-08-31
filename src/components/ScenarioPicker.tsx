@@ -21,7 +21,6 @@ export function ScenarioPicker({ value, onChange, error, scenariosData }: Scenar
   const loading = scenariosData.loading;
   const fetchError = scenariosData.error ?? null;
 
-
   return (
     <div className="flex w-full flex-col gap-2">
       <label className="text-xs font-bold tracking-wide text-[color:var(--color-foreground)] uppercase">

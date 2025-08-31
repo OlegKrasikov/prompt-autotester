@@ -44,7 +44,7 @@ npm i
 - Better Auth (email/password)
 - Prisma ORM + Neon Postgres
 - TailwindCSS 4
- - Prettier + ESLint (Flat config) with Tailwind class sorting
+- Prettier + ESLint (Flat config) with Tailwind class sorting
 
 ## Code Style
 

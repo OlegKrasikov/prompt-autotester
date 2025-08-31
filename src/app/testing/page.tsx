@@ -281,7 +281,11 @@ export default function PromptTestingPage() {
 
   // Calculate run button availability
   const canRunSimulation = !!(
-    selectedPromptId && scenarioKey && hasApiKeys && !apiKeysLoading && hasPrompts
+    selectedPromptId &&
+    scenarioKey &&
+    hasApiKeys &&
+    !apiKeysLoading &&
+    hasPrompts
   );
 
   return (
