@@ -43,6 +43,16 @@ This app follows a layered design:
 
 ## Conventions
 
-- Dynamic route params use `{ params: { id: string } }` (no `Promise` wrappers).
+- Pages (React 19): Dynamic route params may be delivered as a `Promise`. Components may unwrap via `React.use(params)` where needed (see `src/app/scenarios/[id]/edit/page.tsx`).
+- API routes: The handler's second argument (context) is currently typed as `any` for compatibility with Next.js types across versions.
 - Unified error shape via `src/server/http/responses.ts`.
 - Indices added in `prisma/schema.prisma` for common list queries.
+
+## Frontend Fonts
+
+- Fonts are provided via CSS variables in `src/app/globals.css` (e.g., `--font-geist-sans`, `--font-geist-mono`) with system fallbacks.
+- We avoid network font fetches in CI and sandboxed environments. If you prefer Next.js `next/font`, consider self-hosting or gating by environment in a separate change.
+
+## Code Style
+
+- Prettier + ESLint enforce formatting and common lint rules. See `docs/code-style.md`.

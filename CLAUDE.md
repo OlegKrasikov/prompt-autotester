@@ -13,6 +13,7 @@ Guidance for working with this repository.
 - `docs/scenarios.md`: Scenario management (models, APIs, UI)
 - `docs/variables.md`: Variables system and resolution
 - `docs/testing.md`: Testing interface and simulation API
+- `docs/code-style.md`: Code style (Prettier + ESLint), editor, CI
 
 ## Commands
 
@@ -22,6 +23,9 @@ npm run dev
 npm run build
 npm start
 npm run lint
+npm run lint:fix
+npm run format
+npm run format:check
 
 # Prisma / DB
 npm run prisma:generate
@@ -40,6 +44,20 @@ npm i
 - Better Auth (email/password)
 - Prisma ORM + Neon Postgres
 - TailwindCSS 4
+ - Prettier + ESLint (Flat config) with Tailwind class sorting
+
+## Code Style
+
+- Prettier is the source of truth for formatting. See `docs/code-style.md`.
+- ESLint integrates with Prettier via `eslint-config-prettier`.
+- Unused vars/args prefixed with `_` are allowed by lint rules.
+- CI enforces `format:check` and `lint` on PRs.
+
+## Conventions
+
+- Pages: For dynamic routes on React 19, `params` may be a `Promise`. Use `React.use(params)` to unwrap when needed (see `src/app/scenarios/[id]/edit/page.tsx`).
+- API routes: The route handler context param is typed as `any` for broad Next.js compatibility.
+- Unified error shape via `src/server/http/responses.ts`.
 
 ## Core Flow
 

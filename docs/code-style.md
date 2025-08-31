@@ -19,6 +19,7 @@ Commonly formatted file types: `js`, `jsx`, `ts`, `tsx`, `json`, `md`, `css`
 
 - Flat config: `eslint.config.mjs`
 - We extend `eslint-config-prettier` to disable formatting rules that conflict with Prettier.
+ - Unused variables: underscore convention supported. Variables and args prefixed with `_` are ignored by the `@typescript-eslint/no-unused-vars` rule to reduce noise when intentionally unused.
 
 Commands
 
@@ -37,7 +38,7 @@ You may need to install the recommended extensions if VS Code prompts you.
 
 ## CI
 
-Our CI (disabled by default in `.github/workflows_disabled/ci.yml`) runs `npm run format:check` and `npm run lint` on PRs. To enable, move the workflow into `.github/workflows/`.
+CI runs `npm run format:check` and `npm run lint` on PRs (see `.github/workflows/ci.yml`).
 
 ## Commit Hooks (optional)
 
