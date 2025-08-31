@@ -21,7 +21,6 @@ export function ScenarioPicker({ value, onChange, error, scenariosData }: Scenar
   const loading = scenariosData.loading;
   const fetchError = scenariosData.error ?? null;
 
-  const selectedScenario = scenarios.find((s) => s.id === value);
 
   return (
     <div className="flex w-full flex-col gap-2">

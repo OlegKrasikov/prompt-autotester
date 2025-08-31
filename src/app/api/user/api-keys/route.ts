@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/utils/auth-utils';
 import { getLogger } from '@/server/logging/logger';
 import { apiKeysService } from '@/server/services/apiKeysService';
@@ -63,7 +62,7 @@ export async function POST(request: NextRequest) {
     // Ensure encryption is configured
     try {
       ensureCryptoReady();
-    } catch (e) {
+    } catch {
       return NextResponse.json(
         {
           error: 'Server misconfiguration',

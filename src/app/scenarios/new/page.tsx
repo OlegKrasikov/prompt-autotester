@@ -20,7 +20,7 @@ export default function NewScenarioPage() {
   return (
     <ScenarioEditor
       mode="create"
-      onSave={(scenario) => {
+      onSave={() => {
         router.push('/scenarios');
       }}
       onCancel={() => router.push('/scenarios')}

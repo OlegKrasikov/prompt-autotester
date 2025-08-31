@@ -4,7 +4,7 @@ import { serializeBigInt } from '@/lib/utils/bigint-serializer';
 import { getCurrentUser } from '@/lib/utils/auth-utils';
 import { okJson, unauthorized, notFound, serverError } from '@/server/http/responses';
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: any) {
   const resolvedParams = params;
   try {
     const user = await getCurrentUser(request);

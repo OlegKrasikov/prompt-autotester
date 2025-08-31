@@ -4,7 +4,7 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import { authClient } from '@/lib/auth-client';
 import { VariableListItem, VariableFilters } from '@/lib/types';
-import { Button, ButtonProps } from '@/components/ui/Button';
+import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent } from '@/components/ui/Card';
 import { SkeletonTable } from '@/components/ui/SkeletonLoader';

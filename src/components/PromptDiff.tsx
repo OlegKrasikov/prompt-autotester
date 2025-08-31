@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { diffWords } from 'diff';
-import { Card, CardContent } from './ui/Card';
+//
 
 interface PromptDiffProps {
   oldText: string;

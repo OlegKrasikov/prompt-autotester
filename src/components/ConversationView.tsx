@@ -2,8 +2,7 @@
 
 import React from 'react';
 import { Conversation } from '@/lib/types';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/Card';
-import { Skeleton } from './ui/SkeletonLoader';
+import { Card, CardContent } from './ui/Card';
 import { EmptyState, EmptyStateIcons } from './ui/EmptyState';
 
 interface ConversationViewProps {
@@ -16,94 +15,9 @@ interface ConversationViewProps {
 export function ConversationView({
   conversation,
   title,
-  loading,
+  loading: _loading,
   isStreaming,
 }: ConversationViewProps) {
-  const getRoleIcon = (role: string) => {
-    switch (role) {
-      case 'user':
-        return (
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
-          </svg>
-        );
-      case 'assistant':
-        return (
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <rect width="3" height="8" x="13" y="2" rx="1.5" />
-            <path d="m19 8.5-2 3-2-3" />
-            <rect width="3" height="8" x="8" y="6" rx="1.5" />
-            <path d="m14 12.5-2 3-2-3" />
-            <rect width="3" height="8" x="3" y="10" rx="1.5" />
-            <path d="m9 16.5-2 3-2-3" />
-          </svg>
-        );
-      case 'system':
-        return (
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" />
-            <circle cx="12" cy="12" r="3" />
-          </svg>
-        );
-      default:
-        return (
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <circle cx="12" cy="12" r="10" />
-            <path d="M8 12h8" />
-          </svg>
-        );
-    }
-  };
-
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case 'user':
-        return 'text-[color:var(--color-accent)]';
-      case 'assistant':
-        return 'text-[color:var(--color-success)]';
-      case 'system':
-        return 'text-[color:var(--color-muted-foreground)]';
-      default:
-        return 'text-[color:var(--color-muted-foreground)]';
-    }
-  };
 
   return (
     <div className="flex h-full flex-col gap-2 sm:gap-3">
@@ -131,7 +45,7 @@ export function ConversationView({
           {!conversation ? (
             <div className="p-4">
               <EmptyState
-                icon={<EmptyStateIcons.Conversation />}
+                icon={EmptyStateIcons.Conversation}
                 title="No conversation yet"
                 description="Run a simulation to see the conversation results here"
                 className="py-8"

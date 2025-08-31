@@ -103,8 +103,8 @@ const PromptTextarea = React.forwardRef<HTMLTextAreaElement, PromptTextareaProps
       ] as const;
 
       propsToCopy.forEach((prop) => {
-        // @ts-expect-error: dynamic style copy
-        div.style[prop] = style[prop as any];
+        const p = prop as keyof CSSStyleDeclaration;
+        (div.style as any)[p] = (style as any)[p];
       });
 
       // Ensure mirror has no borders to avoid width mismatches

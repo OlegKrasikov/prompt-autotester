@@ -1,13 +1,12 @@
 import { NextRequest } from 'next/server';
 import { serializeBigInt } from '@/lib/utils/bigint-serializer';
 import { getCurrentUser } from '@/lib/utils/auth-utils';
-import { Prisma } from '@prisma/client';
 import { okJson, unauthorized, notFound, serverError, errorJson } from '@/server/http/responses';
 import { UpdateScenarioSchema } from '@/server/validation/schemas';
 import { getLogger } from '@/server/logging/logger';
 import { scenariosService } from '@/server/services/scenariosService';
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: any) {
   try {
     const user = await getCurrentUser(request);
     if (!user) {
@@ -28,7 +27,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: any) {
   try {
     const user = await getCurrentUser(request);
     if (!user) {
@@ -53,7 +52,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: any) {
   try {
     const user = await getCurrentUser(request);
     if (!user) {

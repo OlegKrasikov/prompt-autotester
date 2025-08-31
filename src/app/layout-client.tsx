@@ -2,7 +2,6 @@
 
 import { usePathname } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
-import { ResponsiveContainer } from '@/components/ui/ResponsiveContainer';
 
 export default function LayoutClient({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();

@@ -28,13 +28,7 @@ export default function EditPromptPage({ params }: EditPromptPageProps) {
     }
   }, [isPending, session, router, resolvedParams.id]);
 
-  React.useEffect(() => {
-    if (session) {
-      fetchPrompt();
-    }
-  }, [session, resolvedParams.id]);
-
-  const fetchPrompt = async () => {
+  const fetchPrompt = React.useCallback(async () => {
     try {
       const response = await fetch(`/api/prompts/${resolvedParams.id}`);
       if (!response.ok) {
@@ -53,7 +47,13 @@ export default function EditPromptPage({ params }: EditPromptPageProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [resolvedParams.id]);
+
+  React.useEffect(() => {
+    if (session) {
+      fetchPrompt();
+    }
+  }, [session, fetchPrompt]);
 
   if (!session) return null;
 
@@ -93,7 +93,7 @@ export default function EditPromptPage({ params }: EditPromptPageProps) {
     <PromptForm
       mode="edit"
       initialData={prompt}
-      onSave={(updatedPrompt) => {
+      onSave={() => {
         router.push('/prompts');
       }}
       onCancel={() => router.push('/prompts')}

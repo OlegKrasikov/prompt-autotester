@@ -7,7 +7,7 @@ import { SimulateRequestSchema } from '@/server/validation/schemas';
 import { errorJson } from '@/server/http/responses';
 import { getLogger } from '@/server/logging/logger';
 import { chatCompletion, createOpenAIClient } from '@/server/openai/client';
-import { Conversation, SimulateResponseBody, ModelConfig, ChatMessage } from '@/lib/types';
+import { Conversation, ModelConfig, ChatMessage } from '@/lib/types';
 import type { ScenarioTurnType } from '@/lib/constants/enums';
 
 // Using centralized crypto helper for decryption
@@ -60,7 +60,7 @@ async function getUserApiKey(userId: string): Promise<string | null> {
               where: { id: apiKey.id as unknown as string },
               data: { encryptedKey: reEncrypted },
             });
-          } catch (e) {
+          } catch {
             // Rotation failure should not block usage; proceed with legacyPlain
             console.warn(
               'API key re-encryption (rotation) failed; proceeding with legacy-decrypted key.',
@@ -274,7 +274,10 @@ export async function POST(req: NextRequest) {
       if (!scenario) {
         return NextResponse.json({ error: 'Scenario not found' }, { status: 400 });
       }
-      scenarioTurns = scenario.turns;
+      scenarioTurns = scenario.turns.map((t) => ({
+        ...t,
+        userText: t.userText ?? undefined,
+      }));
       scenarioName = scenario.name;
     }
 

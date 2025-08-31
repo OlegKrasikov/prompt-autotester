@@ -42,7 +42,6 @@ export function PromptPicker({ value, onChange, error }: PromptPickerProps) {
     onChange(selectedPromptId, selectedPrompt?.content || '');
   };
 
-  const selectedPrompt = prompts.find((p) => p.id === value);
 
   return (
     <div className="space-y-3">

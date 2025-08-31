@@ -7,12 +7,12 @@ import { PromptListItem, PromptFilters, PromptStatus } from '@/lib/types';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Card, CardContent } from '@/components/ui/Card';
 import { SkeletonTable } from '@/components/ui/SkeletonLoader';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { AlertModal } from '@/components/ui/AlertModal';
 import { useAlertModal } from '@/hooks/useModal';
-import { ResponsiveGrid } from '@/components/ui/ResponsiveGrid';
+//
 import { useConfirmModal } from '@/hooks/useModal';
 
 export default function PromptsPage() {

@@ -1,13 +1,9 @@
 'use client';
 
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { ScenarioPicker } from '@/components/ScenarioPicker';
-import { ModelPicker } from '@/components/ModelPicker';
 import type { ModelConfig } from '@/lib/types';
-import { Spinner } from '@/components/ui/Spinner';
-import { Tooltip } from '@/components/ui/Tooltip';
 import { ScenarioListItem } from '@/lib/types';
 
 interface ScenariosHook {
@@ -51,7 +47,7 @@ export function TestingControlSidebar({
   model,
   onModelChange,
   onRunSimulation,
-  onRestart,
+  onRestart: _onRestart,
   loading,
   canRun,
   error,

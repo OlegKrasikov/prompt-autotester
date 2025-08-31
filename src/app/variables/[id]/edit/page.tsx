@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
 
 interface EditVariablePageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export default function EditVariablePage({ params }: EditVariablePageProps) {
@@ -27,7 +27,7 @@ export default function EditVariablePage({ params }: EditVariablePageProps) {
   const [saving, setSaving] = React.useState(false);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
 
-  const resolvedParams = params;
+  const resolvedParams = React.use(params);
 
   React.useEffect(() => {
     if (!isPending && !session) {

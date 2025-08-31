@@ -157,7 +157,7 @@ export default function PromptTestingPage() {
     }
   }
 
-  function handleStreamEvent(data: Record<string, unknown>) {
+  function handleStreamEvent(data: any) {
     switch (data.type) {
       case 'start':
         console.log(`Starting simulation: ${data.scenarioName}, ${data.totalTurns} turns`);
@@ -280,8 +280,9 @@ export default function PromptTestingPage() {
   if (!session) return null;
 
   // Calculate run button availability
-  const canRunSimulation =
-    selectedPromptId && scenarioKey && hasApiKeys && !apiKeysLoading && hasPrompts;
+  const canRunSimulation = !!(
+    selectedPromptId && scenarioKey && hasApiKeys && !apiKeysLoading && hasPrompts
+  );
 
   return (
     <div className="min-h-screen bg-[color:var(--color-background)]">

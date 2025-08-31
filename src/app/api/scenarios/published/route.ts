@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ScenarioListItem, ScenarioStatus } from '@/lib/types';
+import { ScenarioListItem } from '@/lib/types';
 import { serializeBigInt } from '@/lib/utils/bigint-serializer';
 import { getCurrentUser } from '@/lib/utils/auth-utils';
 import { scenariosService } from '@/server/services/scenariosService';

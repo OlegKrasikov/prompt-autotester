@@ -20,7 +20,7 @@ export default function NewPromptPage() {
   return (
     <PromptForm
       mode="create"
-      onSave={(prompt) => {
+      onSave={() => {
         router.push('/prompts');
       }}
       onCancel={() => router.push('/prompts')}

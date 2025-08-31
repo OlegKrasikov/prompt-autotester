@@ -4,18 +4,17 @@ import React from 'react';
 import {
   ScenarioFull,
   ScenarioTurn,
-  ScenarioExpectation,
   ScenarioStatus,
   ExpectationType,
   CreateScenarioRequest,
 } from '@/lib/types';
-import { validateScenarioName, validateExpectationKey } from '@/lib/utils/scenario-utils';
+//
 import { Card, CardContent, CardHeader, CardTitle } from './ui/Card';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { Textarea } from './ui/Textarea';
 import { Select } from './ui/Select';
-import { Spinner } from './ui/Spinner';
+//
 
 interface ScenarioEditorProps {
   mode: 'create' | 'edit';

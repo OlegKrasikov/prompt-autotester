@@ -5,7 +5,7 @@ import { UpdatePromptSchema } from '@/server/validation/schemas';
 import { okJson, unauthorized, notFound, errorJson, serverError } from '@/server/http/responses';
 import { promptsService } from '@/server/services/promptsService';
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: any) {
   const resolvedParams = params;
   try {
     const user = await getCurrentUser(request);
@@ -26,7 +26,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: any) {
   const resolvedParams = params;
   try {
     const user = await getCurrentUser(request);
@@ -55,7 +55,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: any) {
   const resolvedParams = params;
   try {
     const user = await getCurrentUser(request);

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { VariableListItem } from '@/lib/types';
 
 export function useVariables() {
@@ -6,29 +6,29 @@ export function useVariables() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchVariables = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch('/api/variables');
-        if (response.ok) {
-          const data = await response.json();
-          setVariables(data);
-        } else {
-          setError('Failed to fetch variables');
-        }
-      } catch (err) {
-        setError('Error fetching variables');
-        console.error('Error fetching variables:', err);
-      } finally {
-        setLoading(false);
+  const fetchVariables = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/variables');
+      if (response.ok) {
+        const data = await response.json();
+        setVariables(data);
+      } else {
+        setError('Failed to fetch variables');
       }
-    };
-
-    fetchVariables();
+    } catch (err) {
+      setError('Error fetching variables');
+      console.error('Error fetching variables:', err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  return { variables, loading, error, refetch: () => fetchVariables() };
+  useEffect(() => {
+    fetchVariables();
+  }, [fetchVariables]);
+
+  return { variables, loading, error, refetch: fetchVariables };
 }
 
 export function useVariableAutocomplete(query: string) {

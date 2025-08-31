@@ -5,58 +5,7 @@ import { UpdateVariableSchema } from '@/server/validation/schemas';
 import { okJson, unauthorized, notFound, errorJson, serverError } from '@/server/http/responses';
 import { variablesService } from '@/server/services/variablesService';
 
-// Helper function to check if a variable is used in any prompts or scenarios
-async function checkVariableUsage(variableKey: string, userId: string) {
-  const variablePattern = `{{${variableKey}}}`;
-
-  // Check prompts
-  const promptsWithVariable = await prisma.prompt.findMany({
-    where: {
-      userId: userId,
-      content: {
-        contains: variablePattern,
-      },
-    },
-    select: {
-      id: true,
-      name: true,
-      content: true,
-    },
-  });
-
-  // Check scenarios - look in scenario turn userText
-  const scenarioTurnsWithVariable = await prisma.scenarioTurn.findMany({
-    where: {
-      scenario: {
-        userId: userId,
-      },
-      userText: {
-        contains: variablePattern,
-      },
-    },
-    include: {
-      scenario: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-    },
-  });
-
-  return {
-    prompts: promptsWithVariable,
-    scenarios: scenarioTurnsWithVariable
-      .map((turn) => turn.scenario)
-      .filter(
-        (scenario, index, self) =>
-          // Remove duplicates by id
-          index === self.findIndex((s) => s.id === scenario.id),
-      ),
-  };
-}
-
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: any) {
   try {
     const user = await getCurrentUser(request);
     if (!user) {
@@ -76,7 +25,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: any) {
   try {
     const user = await getCurrentUser(request);
     if (!user) {
@@ -107,7 +56,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: any) {
   try {
     const user = await getCurrentUser(request);
     if (!user) {

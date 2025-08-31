@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
 
 export function okJson(data: unknown, init?: number | ResponseInit) {
-  return NextResponse.json(data as any, init);
+  const opts: ResponseInit | undefined =
+    typeof init === 'number' ? { status: init } : init;
+  return NextResponse.json(data as any, opts);
 }
 
 export function errorJson(
