@@ -1,9 +1,12 @@
-import { prisma } from "@/lib/prisma";
-import { Prisma } from "@prisma/client";
+import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 
 export const variablesRepo = {
   async findManyByUser(userId: string, where: Prisma.VariableWhereInput = {}) {
-    return prisma.variable.findMany({ where: { userId, ...where }, orderBy: { updatedAt: "desc" } });
+    return prisma.variable.findMany({
+      where: { userId, ...where },
+      orderBy: { updatedAt: 'desc' },
+    });
   },
   async findByIdForUser(id: string, userId: string) {
     return prisma.variable.findFirst({ where: { id, userId } });
@@ -36,4 +39,3 @@ export const variablesRepo = {
     return { prompts, scenarios };
   },
 };
-

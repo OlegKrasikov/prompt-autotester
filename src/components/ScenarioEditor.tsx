@@ -1,7 +1,14 @@
-'use client'
+'use client';
 
 import React from 'react';
-import { ScenarioFull, ScenarioTurn, ScenarioExpectation, ScenarioStatus, ExpectationType, CreateScenarioRequest } from '@/lib/types';
+import {
+  ScenarioFull,
+  ScenarioTurn,
+  ScenarioExpectation,
+  ScenarioStatus,
+  ExpectationType,
+  CreateScenarioRequest,
+} from '@/lib/types';
 import { validateScenarioName, validateExpectationKey } from '@/lib/utils/scenario-utils';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/Card';
 import { Button } from './ui/Button';
@@ -17,18 +24,21 @@ interface ScenarioEditorProps {
   onCancel: () => void;
 }
 
-export default function ScenarioEditor({ mode, initialData, onSave, onCancel }: ScenarioEditorProps) {
+export default function ScenarioEditor({
+  mode,
+  initialData,
+  onSave,
+  onCancel,
+}: ScenarioEditorProps) {
   const [formData, setFormData] = React.useState({
     name: initialData?.name || '',
     description: initialData?.description || '',
     locale: initialData?.locale || 'en',
-    status: initialData?.status || 'DRAFT' as ScenarioStatus,
+    status: initialData?.status || ('DRAFT' as ScenarioStatus),
     tags: initialData?.tags || [],
   });
 
-  const [turns, setTurns] = React.useState<ScenarioTurn[]>(
-    initialData?.turns || []
-  );
+  const [turns, setTurns] = React.useState<ScenarioTurn[]>(initialData?.turns || []);
 
   const [tagInput, setTagInput] = React.useState('');
   const [saving, setSaving] = React.useState(false);
@@ -37,18 +47,18 @@ export default function ScenarioEditor({ mode, initialData, onSave, onCancel }: 
 
   const addTag = () => {
     if (tagInput.trim() && !formData.tags.includes(tagInput.trim())) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        tags: [...prev.tags, tagInput.trim()]
+        tags: [...prev.tags, tagInput.trim()],
       }));
       setTagInput('');
     }
   };
 
   const removeTag = (tagToRemove: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      tags: prev.tags.filter(tag => tag !== tagToRemove)
+      tags: prev.tags.filter((tag) => tag !== tagToRemove),
     }));
   };
 
@@ -57,32 +67,34 @@ export default function ScenarioEditor({ mode, initialData, onSave, onCancel }: 
       orderIndex: turns.length,
       turnType: 'USER',
       userText: '',
-      expectations: []
+      expectations: [],
     };
-    setTurns(prev => [...prev, newStep]);
+    setTurns((prev) => [...prev, newStep]);
   };
 
   const addExpectStep = () => {
     const newStep: ScenarioTurn = {
       orderIndex: turns.length,
       turnType: 'EXPECT',
-      expectations: [{
-        expectationType: 'MUST_CONTAIN' as ExpectationType,
-        expectationKey: '',
-        argsJson: { text: '' }
-      }]
+      expectations: [
+        {
+          expectationType: 'MUST_CONTAIN' as ExpectationType,
+          expectationKey: '',
+          argsJson: { text: '' },
+        },
+      ],
     };
-    setTurns(prev => [...prev, newStep]);
+    setTurns((prev) => [...prev, newStep]);
   };
 
   const updateStep = (index: number, updates: Partial<ScenarioTurn>) => {
-    setTurns(prev => prev.map((turn, i) => 
-      i === index ? { ...turn, ...updates } : turn
-    ));
+    setTurns((prev) => prev.map((turn, i) => (i === index ? { ...turn, ...updates } : turn)));
   };
 
   const removeStep = (index: number) => {
-    setTurns(prev => prev.filter((_, i) => i !== index).map((turn, i) => ({ ...turn, orderIndex: i })));
+    setTurns((prev) =>
+      prev.filter((_, i) => i !== index).map((turn, i) => ({ ...turn, orderIndex: i })),
+    );
   };
 
   const handleSave = async () => {
@@ -99,9 +111,8 @@ export default function ScenarioEditor({ mode, initialData, onSave, onCancel }: 
         locale: formData.locale,
         status: formData.status,
         tags: formData.tags,
-        turns: turns.map((turn, i) => ({ ...turn, orderIndex: i }))
+        turns: turns.map((turn, i) => ({ ...turn, orderIndex: i })),
       };
-
 
       const url = mode === 'create' ? '/api/scenarios' : `/api/scenarios/${initialData?.id}`;
       const method = mode === 'create' ? 'POST' : 'PUT';
@@ -109,14 +120,17 @@ export default function ScenarioEditor({ mode, initialData, onSave, onCancel }: 
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(scenarioData)
+        body: JSON.stringify(scenarioData),
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        const msg = typeof errorData.error === 'string'
-          ? errorData.error
-          : (errorData.error?.userMessage || errorData.error?.message || `Failed to ${mode} scenario`);
+        const msg =
+          typeof errorData.error === 'string'
+            ? errorData.error
+            : errorData.error?.userMessage ||
+              errorData.error?.message ||
+              `Failed to ${mode} scenario`;
         throw new Error(msg);
       }
 
@@ -131,29 +145,25 @@ export default function ScenarioEditor({ mode, initialData, onSave, onCancel }: 
   };
 
   return (
-    <div className="min-h-screen p-6 bg-[color:var(--color-background)]">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen bg-[color:var(--color-background)] p-6">
+      <div className="mx-auto max-w-4xl space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-[color:var(--color-foreground)]">
               {mode === 'create' ? 'Create New Scenario' : `Edit Scenario`}
             </h1>
-            <p className="text-[color:var(--color-muted-foreground)] mt-1">
-              {mode === 'create' ? 'Build a new test scenario for prompt evaluation' : 'Update your test scenario'}
+            <p className="mt-1 text-[color:var(--color-muted-foreground)]">
+              {mode === 'create'
+                ? 'Build a new test scenario for prompt evaluation'
+                : 'Update your test scenario'}
             </p>
           </div>
           <div className="flex gap-2">
-            <Button
-              variant="ghost"
-              onClick={() => setShowRawJson(!showRawJson)}
-            >
+            <Button variant="ghost" onClick={() => setShowRawJson(!showRawJson)}>
               {showRawJson ? 'Hide' : 'Show'} JSON
             </Button>
-            <Button
-              variant="secondary"
-              onClick={onCancel}
-            >
+            <Button variant="secondary" onClick={onCancel}>
               Cancel
             </Button>
             <Button
@@ -168,39 +178,48 @@ export default function ScenarioEditor({ mode, initialData, onSave, onCancel }: 
         </div>
 
         {submitError && (
-          <div className="p-3 rounded-[var(--radius)] text-sm bg-[color:var(--color-danger)]/10 text-[color:var(--color-danger)] border border-[color:var(--color-danger)]/20">
+          <div className="rounded-[var(--radius)] border border-[color:var(--color-danger)]/20 bg-[color:var(--color-danger)]/10 p-3 text-sm text-[color:var(--color-danger)]">
             {submitError}
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Main Form */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="space-y-6 lg:col-span-2">
             {/* Basic Info */}
             <Card variant="elevated">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
-                    <polyline points="14,2 14,8 20,8"/>
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                    <polyline points="14,2 14,8 20,8" />
                   </svg>
                   Basic Information
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <Input
                       label="Scenario Name"
                       value={formData.name}
-                      onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
                       placeholder="Enter scenario name"
                       required
                     />
                     <Select
                       label="Language"
                       value={formData.locale}
-                      onChange={(e) => setFormData(prev => ({ ...prev, locale: e.target.value }))}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, locale: e.target.value }))}
                     >
                       <option value="en">English</option>
                       <option value="es">Spanish</option>
@@ -211,7 +230,9 @@ export default function ScenarioEditor({ mode, initialData, onSave, onCancel }: 
                   <Textarea
                     label="Description"
                     value={formData.description}
-                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, description: e.target.value }))
+                    }
                     placeholder="Description..."
                     rows={3}
                   />
@@ -223,25 +244,43 @@ export default function ScenarioEditor({ mode, initialData, onSave, onCancel }: 
             <Card variant="elevated">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
-                    <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+                    <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
                   </svg>
                   Conversation Steps ({turns.length})
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 {turns.length === 0 ? (
-                  <div className="text-center py-8">
-                    <div className="w-12 h-12 mx-auto mb-3 text-[color:var(--color-muted-foreground)]">
-                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                  <div className="py-8 text-center">
+                    <div className="mx-auto mb-3 h-12 w-12 text-[color:var(--color-muted-foreground)]">
+                      <svg
+                        width="48"
+                        height="48"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                       </svg>
                     </div>
-                    <h3 className="text-sm font-medium text-[color:var(--color-foreground)] mb-1">
+                    <h3 className="mb-1 text-sm font-medium text-[color:var(--color-foreground)]">
                       No Steps Added Yet
                     </h3>
-                    <p className="text-xs text-[color:var(--color-muted-foreground)] mb-4">
+                    <p className="mb-4 text-xs text-[color:var(--color-muted-foreground)]">
                       Add user messages and expectations to build your test scenario
                     </p>
                   </div>
@@ -257,8 +296,8 @@ export default function ScenarioEditor({ mode, initialData, onSave, onCancel }: 
                         />
                         {/* AI Response Placeholder after User steps */}
                         {turn.turnType === 'USER' && (
-                          <div className="flex items-center gap-2 px-3 py-2 rounded-[var(--radius)] border border-dashed border-[color:var(--color-muted-foreground)]/30 bg-[color:var(--color-surface-1)]/30">
-                            <span className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium bg-[color:var(--color-muted-foreground)] text-white">
+                          <div className="flex items-center gap-2 rounded-[var(--radius)] border border-dashed border-[color:var(--color-muted-foreground)]/30 bg-[color:var(--color-surface-1)]/30 px-3 py-2">
+                            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[color:var(--color-muted-foreground)] text-xs font-medium text-white">
                               AI
                             </span>
                             <span className="text-xs text-[color:var(--color-muted-foreground)] italic">
@@ -270,21 +309,13 @@ export default function ScenarioEditor({ mode, initialData, onSave, onCancel }: 
                     ))}
                   </div>
                 )}
-                
+
                 {/* Add Step Buttons - Always at bottom */}
-                <div className="flex justify-center gap-2 pt-4 mt-4 border-t border-[color:var(--color-divider)]">
-                  <Button
-                    size="sm"
-                    variant="success"
-                    onClick={addUserStep}
-                  >
+                <div className="mt-4 flex justify-center gap-2 border-t border-[color:var(--color-divider)] pt-4">
+                  <Button size="sm" variant="success" onClick={addUserStep}>
                     + User
                   </Button>
-                  <Button
-                    size="sm"
-                    variant="primary"
-                    onClick={addExpectStep}
-                  >
+                  <Button size="sm" variant="primary" onClick={addExpectStep}>
                     + Expect
                   </Button>
                 </div>
@@ -304,21 +335,26 @@ export default function ScenarioEditor({ mode, initialData, onSave, onCancel }: 
                   <div className="space-y-4">
                     {/* Status */}
                     <div>
-                      <label className="text-xs font-medium text-[color:var(--color-foreground)] tracking-wide uppercase mb-2 block">
+                      <label className="mb-2 block text-xs font-medium tracking-wide text-[color:var(--color-foreground)] uppercase">
                         Status
                       </label>
                       <Select
                         value={formData.status}
-                        onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as ScenarioStatus }))}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            status: e.target.value as ScenarioStatus,
+                          }))
+                        }
                       >
                         <option value="DRAFT">Draft</option>
                         <option value="PUBLISHED">Published</option>
                       </Select>
                     </div>
-                    
+
                     {/* Tags */}
                     <div>
-                      <label className="text-xs font-medium text-[color:var(--color-foreground)] tracking-wide uppercase mb-2 block">
+                      <label className="mb-2 block text-xs font-medium tracking-wide text-[color:var(--color-foreground)] uppercase">
                         Tags
                       </label>
                       <div className="space-y-3">
@@ -329,11 +365,7 @@ export default function ScenarioEditor({ mode, initialData, onSave, onCancel }: 
                             placeholder="Add tag"
                             onKeyPress={(e) => e.key === 'Enter' && addTag()}
                           />
-                          <Button
-                            size="sm"
-                            onClick={addTag}
-                            disabled={!tagInput.trim()}
-                          >
+                          <Button size="sm" onClick={addTag} disabled={!tagInput.trim()}>
                             Add
                           </Button>
                         </div>
@@ -342,7 +374,7 @@ export default function ScenarioEditor({ mode, initialData, onSave, onCancel }: 
                             {formData.tags.map((tag) => (
                               <span
                                 key={tag}
-                                className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-[color:var(--color-accent)]/10 text-[color:var(--color-accent)] rounded-full"
+                                className="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-accent)]/10 px-2 py-1 text-xs text-[color:var(--color-accent)]"
                               >
                                 {tag}
                                 <button
@@ -361,23 +393,31 @@ export default function ScenarioEditor({ mode, initialData, onSave, onCancel }: 
                 </CardContent>
               </Card>
             </div>
-            
-            
+
             {/* Conversation Preview - aligned with Steps */}
             <div className="sticky top-6">
               <Card variant="elevated">
                 <CardHeader>
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                  <CardTitle className="flex items-center gap-2 text-sm">
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                     </svg>
                     Conversation Preview
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="max-h-96 overflow-y-auto space-y-2">
+                  <div className="max-h-96 space-y-2 overflow-y-auto">
                     {turns.length === 0 ? (
-                      <div className="text-center py-4">
+                      <div className="py-4 text-center">
                         <p className="text-xs text-[color:var(--color-muted-foreground)]">
                           Add steps to see conversation preview
                         </p>
@@ -390,19 +430,23 @@ export default function ScenarioEditor({ mode, initialData, onSave, onCancel }: 
                               <>
                                 {/* User Message */}
                                 <div className="flex gap-2">
-                                  <div className="w-4 h-4 rounded-full bg-[color:var(--color-success)] flex items-center justify-center flex-shrink-0 mt-0.5">
-                                    <span className="text-xs text-white font-medium">U</span>
+                                  <div className="mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-[color:var(--color-success)]">
+                                    <span className="text-xs font-medium text-white">U</span>
                                   </div>
                                   <div className="flex-1">
                                     <p className="text-xs text-[color:var(--color-foreground)]">
-                                      {turn.userText || <em className="text-[color:var(--color-muted-foreground)]">Enter user message...</em>}
+                                      {turn.userText || (
+                                        <em className="text-[color:var(--color-muted-foreground)]">
+                                          Enter user message...
+                                        </em>
+                                      )}
                                     </p>
                                   </div>
                                 </div>
                                 {/* AI Response Placeholder */}
                                 <div className="flex gap-2">
-                                  <div className="w-4 h-4 rounded-full bg-[color:var(--color-muted-foreground)] flex items-center justify-center flex-shrink-0 mt-0.5">
-                                    <span className="text-xs text-white font-medium">AI</span>
+                                  <div className="mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-[color:var(--color-muted-foreground)]">
+                                    <span className="text-xs font-medium text-white">AI</span>
                                   </div>
                                   <div className="flex-1">
                                     <p className="text-xs text-[color:var(--color-muted-foreground)] italic">
@@ -414,13 +458,19 @@ export default function ScenarioEditor({ mode, initialData, onSave, onCancel }: 
                             ) : (
                               /* Expectation Step */
                               <div className="flex gap-2">
-                                <div className="w-4 h-4 rounded-full bg-[color:var(--color-accent)] flex items-center justify-center flex-shrink-0 mt-0.5">
-                                  <span className="text-xs text-white font-medium">✓</span>
+                                <div className="mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-[color:var(--color-accent)]">
+                                  <span className="text-xs font-medium text-white">✓</span>
                                 </div>
                                 <div className="flex-1">
                                   <p className="text-xs text-[color:var(--color-accent)]">
-                                    Check: {turn.expectations?.[0]?.expectationType || 'MUST_CONTAIN'} "
-                                    {(turn.expectations?.[0]?.argsJson as any)?.text || <em className="text-[color:var(--color-muted-foreground)]">Enter expected text...</em>}"
+                                    Check:{' '}
+                                    {turn.expectations?.[0]?.expectationType || 'MUST_CONTAIN'} "
+                                    {(turn.expectations?.[0]?.argsJson as any)?.text || (
+                                      <em className="text-[color:var(--color-muted-foreground)]">
+                                        Enter expected text...
+                                      </em>
+                                    )}
+                                    "
                                   </p>
                                 </div>
                               </div>
@@ -443,7 +493,7 @@ export default function ScenarioEditor({ mode, initialData, onSave, onCancel }: 
               <CardTitle className="text-sm">Raw JSON</CardTitle>
             </CardHeader>
             <CardContent>
-              <pre className="text-xs bg-[color:var(--color-surface-1)] p-4 rounded-[var(--radius)] overflow-auto">
+              <pre className="overflow-auto rounded-[var(--radius)] bg-[color:var(--color-surface-1)] p-4 text-xs">
                 {JSON.stringify({ ...formData, turns }, null, 2)}
               </pre>
             </CardContent>
@@ -464,23 +514,21 @@ interface StepCardProps {
 
 function StepCard({ step, index, onUpdate, onRemove }: StepCardProps) {
   const isUser = step.turnType === 'USER';
-  
+
   return (
-    <div className={`p-4 rounded-[var(--radius)] border-2 ${isUser ? 'border-[color:var(--color-success)]/20 bg-[color:var(--color-success)]/5' : 'border-[color:var(--color-accent)]/20 bg-[color:var(--color-accent)]/5'}`}>
-      <div className="flex items-center justify-between mb-3">
+    <div
+      className={`rounded-[var(--radius)] border-2 p-4 ${isUser ? 'border-[color:var(--color-success)]/20 bg-[color:var(--color-success)]/5' : 'border-[color:var(--color-accent)]/20 bg-[color:var(--color-accent)]/5'}`}
+    >
+      <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${isUser ? 'bg-[color:var(--color-success)] text-white' : 'bg-[color:var(--color-accent)] text-white'}`}>
+          <span
+            className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium ${isUser ? 'bg-[color:var(--color-success)] text-white' : 'bg-[color:var(--color-accent)] text-white'}`}
+          >
             {index + 1}
           </span>
-          <span className="text-sm font-medium">
-            {isUser ? 'User Message' : 'Expectation'}
-          </span>
+          <span className="text-sm font-medium">{isUser ? 'User Message' : 'Expectation'}</span>
         </div>
-        <Button
-          size="sm"
-          variant="danger"
-          onClick={onRemove}
-        >
+        <Button size="sm" variant="danger" onClick={onRemove}>
           ×
         </Button>
       </div>
@@ -496,13 +544,17 @@ function StepCard({ step, index, onUpdate, onRemove }: StepCardProps) {
         <div className="space-y-2">
           <Select
             value={step.expectations?.[0]?.expectationType || 'MUST_CONTAIN'}
-            onChange={(e) => onUpdate({
-              expectations: [{
-                expectationType: e.target.value as ExpectationType,
-                expectationKey: step.expectations?.[0]?.expectationKey || '',
-                argsJson: step.expectations?.[0]?.argsJson || { text: '' }
-              }]
-            })}
+            onChange={(e) =>
+              onUpdate({
+                expectations: [
+                  {
+                    expectationType: e.target.value as ExpectationType,
+                    expectationKey: step.expectations?.[0]?.expectationKey || '',
+                    argsJson: step.expectations?.[0]?.argsJson || { text: '' },
+                  },
+                ],
+              })
+            }
           >
             <option value="MUST_CONTAIN">Must Contain</option>
             <option value="MUST_NOT_CONTAIN">Must Not Contain</option>
@@ -510,13 +562,17 @@ function StepCard({ step, index, onUpdate, onRemove }: StepCardProps) {
           </Select>
           <Input
             value={(step.expectations?.[0]?.argsJson as any)?.text || ''}
-            onChange={(e) => onUpdate({
-              expectations: [{
-                expectationType: step.expectations?.[0]?.expectationType || 'MUST_CONTAIN',
-                expectationKey: step.expectations?.[0]?.expectationKey || '',
-                argsJson: { text: e.target.value }
-              }]
-            })}
+            onChange={(e) =>
+              onUpdate({
+                expectations: [
+                  {
+                    expectationType: step.expectations?.[0]?.expectationType || 'MUST_CONTAIN',
+                    expectationKey: step.expectations?.[0]?.expectationKey || '',
+                    argsJson: { text: e.target.value },
+                  },
+                ],
+              })
+            }
             placeholder="Expected text..."
           />
         </div>

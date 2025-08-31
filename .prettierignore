@@ -1,0 +1,14 @@
+node_modules
+.next
+dist
+build
+out
+coverage
+.turbo
+.vercel
+.DS_Store
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+prisma/**
+

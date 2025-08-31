@@ -31,4 +31,3 @@ Shared tokens and components used across the app.
 - Keep page structure consistent; prefer Card sections
 - Provide loading, error, and disabled states for actions
 - Ensure accessibility (labels, roles, focus, contrast)
-

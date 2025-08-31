@@ -54,7 +54,7 @@ npm i
 - `src/app/testing/page.tsx`: Testing interface
 - `src/app/api/simulate/route.ts`: OpenAI integration + SSE streaming
 - `src/app/api/user/api-keys/route.ts`: Encrypted API key management
-- `src/lib/types.ts`: Core types (ChatMessage, Conversation, Scenario*)
+- `src/lib/types.ts`: Core types (ChatMessage, Conversation, Scenario\*)
 - `src/lib/auth.ts`, `src/lib/auth-client.ts`, `src/lib/prisma.ts`
 - `middleware.ts`: Route protection
 

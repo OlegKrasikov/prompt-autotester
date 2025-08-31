@@ -1,4 +1,4 @@
-export type ChatRole = "system" | "user" | "assistant";
+export type ChatRole = 'system' | 'user' | 'assistant';
 
 export interface ChatMessage {
   role: ChatRole;
@@ -25,7 +25,7 @@ import type {
   ReasoningEffort,
   Verbosity,
   ServiceTier,
-} from "@/lib/constants/enums";
+} from '@/lib/constants/enums';
 
 export interface ModelConfig {
   model: string;
@@ -183,4 +183,3 @@ export interface CreateVariableRequest {
 }
 
 export type UpdateVariableRequest = CreateVariableRequest;
-

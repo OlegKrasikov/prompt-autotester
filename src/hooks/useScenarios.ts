@@ -50,40 +50,46 @@ export function useScenarios() {
   // Add scenario to recently used
   const markScenarioAsUsed = useCallback((scenarioId: string) => {
     if (!scenarioId) return;
-    
-    setRecentlyUsed(prev => {
+
+    setRecentlyUsed((prev) => {
       // Remove if already exists, then add to front
-      const filtered = prev.filter(id => id !== scenarioId);
+      const filtered = prev.filter((id) => id !== scenarioId);
       const updated = [scenarioId, ...filtered].slice(0, 5); // Keep only last 5
-      
+
       // Save to localStorage
       localStorage.setItem('recently-used-scenarios', JSON.stringify(updated));
-      
+
       return updated;
     });
   }, []);
 
   // Get scenario by index for quick switching
-  const getScenarioByIndex = useCallback((index: number): ScenarioListItem | null => {
-    if (index < 0 || index >= scenarios.length) return null;
-    return scenarios[index];
-  }, [scenarios]);
+  const getScenarioByIndex = useCallback(
+    (index: number): ScenarioListItem | null => {
+      if (index < 0 || index >= scenarios.length) return null;
+      return scenarios[index];
+    },
+    [scenarios],
+  );
 
   // Get recently used scenarios as full objects
   const getRecentlyUsedScenarios = useCallback((): ScenarioListItem[] => {
     return recentlyUsed
-      .map(id => scenarios.find(s => s.id === id))
+      .map((id) => scenarios.find((s) => s.id === id))
       .filter(Boolean) as ScenarioListItem[];
   }, [recentlyUsed, scenarios]);
 
   // Switch to scenario by index (0-based)
-  const switchToScenarioByIndex = useCallback((index: number): ScenarioListItem | null => {
-    const scenario = getScenarioByIndex(index);
-    if (scenario) {
-      markScenarioAsUsed(scenario.id);
-    }
-    return scenario;
-  }, [getScenarioByIndex, markScenarioAsUsed]);
+  const switchToScenarioByIndex = useCallback(
+    (index: number): ScenarioListItem | null => {
+      const scenario = getScenarioByIndex(index);
+      if (scenario) {
+        markScenarioAsUsed(scenario.id);
+      }
+      return scenario;
+    },
+    [getScenarioByIndex, markScenarioAsUsed],
+  );
 
   return {
     scenarios,
@@ -93,6 +99,6 @@ export function useScenarios() {
     markScenarioAsUsed,
     getScenarioByIndex,
     switchToScenarioByIndex,
-    reload: loadScenarios
+    reload: loadScenarios,
   };
 }

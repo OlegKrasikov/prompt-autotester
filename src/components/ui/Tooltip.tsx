@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState } from 'react';
 
@@ -10,19 +10,19 @@ interface TooltipProps {
   disabled?: boolean;
 }
 
-export function Tooltip({ 
-  children, 
-  content, 
+export function Tooltip({
+  children,
+  content,
   position = 'top',
   delay = 500,
-  disabled = false 
+  disabled = false,
 }: TooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
 
   const showTooltip = () => {
     if (disabled || !content.trim()) return;
-    
+
     const id = setTimeout(() => setIsVisible(true), delay);
     setTimeoutId(id);
   };
@@ -70,7 +70,7 @@ export function Tooltip({
   }
 
   return (
-    <div 
+    <div
       className="relative inline-block"
       onMouseEnter={showTooltip}
       onMouseLeave={hideTooltip}
@@ -78,19 +78,14 @@ export function Tooltip({
       onBlur={hideTooltip}
     >
       {children}
-      
+
       {isVisible && (
         <div
-          className={`
-            absolute z-50 px-2 py-1 text-xs text-white bg-[color:var(--color-foreground)] 
-            rounded-[var(--radius-sm)] shadow-lg pointer-events-none
-            animate-in fade-in-0 zoom-in-95 duration-150
-            ${getPositionClasses()}
-          `}
+          className={`animate-in fade-in-0 zoom-in-95 pointer-events-none absolute z-50 rounded-[var(--radius-sm)] bg-[color:var(--color-foreground)] px-2 py-1 text-xs text-white shadow-lg duration-150 ${getPositionClasses()} `}
           style={{ maxWidth: '200px' }}
         >
           {content}
-          <div className={`absolute w-0 h-0 ${getArrowClasses()}`} />
+          <div className={`absolute h-0 w-0 ${getArrowClasses()}`} />
         </div>
       )}
     </div>

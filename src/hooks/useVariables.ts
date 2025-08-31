@@ -33,9 +33,9 @@ export function useVariables() {
 
 export function useVariableAutocomplete(query: string) {
   const { variables } = useVariables();
-  
-  const filteredVariables = variables.filter(variable => 
-    variable.key.toLowerCase().includes(query.toLowerCase())
+
+  const filteredVariables = variables.filter((variable) =>
+    variable.key.toLowerCase().includes(query.toLowerCase()),
   );
 
   return filteredVariables;

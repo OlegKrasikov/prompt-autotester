@@ -57,4 +57,3 @@ model ScenarioExpectation {
 - `/scenarios`: list with search/filter and actions (edit, duplicate, delete)
 - `/scenarios/new`, `/scenarios/[id]/edit`: editor with ordered USER/EXPECT steps and expectations
 - Published scenarios appear in `ScenarioPicker` on `/testing`
-

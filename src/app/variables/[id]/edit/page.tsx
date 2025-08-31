@@ -1,14 +1,14 @@
-'use client'
+'use client';
 
-import React from "react";
-import { useRouter } from "next/navigation";
-import { authClient } from "@/lib/auth-client";
-import { VariableFull, UpdateVariableRequest } from "@/lib/types";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
-import { Textarea } from "@/components/ui/Textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
-import { Spinner } from "@/components/ui/Spinner";
+import React from 'react';
+import { useRouter } from 'next/navigation';
+import { authClient } from '@/lib/auth-client';
+import { VariableFull, UpdateVariableRequest } from '@/lib/types';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Textarea } from '@/components/ui/Textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Spinner } from '@/components/ui/Spinner';
 
 interface EditVariablePageProps {
   params: { id: string };
@@ -26,7 +26,7 @@ export default function EditVariablePage({ params }: EditVariablePageProps) {
   });
   const [saving, setSaving] = React.useState(false);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
-  
+
   const resolvedParams = params;
 
   React.useEffect(() => {
@@ -81,7 +81,7 @@ export default function EditVariablePage({ params }: EditVariablePageProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
 
     setSaving(true);
@@ -98,9 +98,12 @@ export default function EditVariablePage({ params }: EditVariablePageProps) {
         router.push('/variables');
       } else {
         const errorData = await response.json().catch(() => ({}));
-        const msg = typeof errorData.error === 'string'
-          ? errorData.error
-          : (errorData.error?.userMessage || errorData.error?.message || 'Failed to update variable');
+        const msg =
+          typeof errorData.error === 'string'
+            ? errorData.error
+            : errorData.error?.userMessage ||
+              errorData.error?.message ||
+              'Failed to update variable';
         setErrors({ submit: msg });
       }
     } catch (error) {
@@ -119,8 +122,8 @@ export default function EditVariablePage({ params }: EditVariablePageProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen p-6 bg-[color:var(--color-background)]">
-        <div className="max-w-4xl mx-auto">
+      <div className="min-h-screen bg-[color:var(--color-background)] p-6">
+        <div className="mx-auto max-w-4xl">
           <div className="flex justify-center py-12">
             <Spinner size="lg" />
           </div>
@@ -131,18 +134,17 @@ export default function EditVariablePage({ params }: EditVariablePageProps) {
 
   if (!variable) {
     return (
-      <div className="min-h-screen p-6 bg-[color:var(--color-background)]">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center py-12">
-            <h2 className="text-xl font-semibold text-[color:var(--color-foreground)] mb-2">
+      <div className="min-h-screen bg-[color:var(--color-background)] p-6">
+        <div className="mx-auto max-w-4xl">
+          <div className="py-12 text-center">
+            <h2 className="mb-2 text-xl font-semibold text-[color:var(--color-foreground)]">
               Variable not found
             </h2>
-            <p className="text-[color:var(--color-muted-foreground)] mb-6">
-              The variable you&apos;re looking for doesn&apos;t exist or you don&apos;t have permission to view it.
+            <p className="mb-6 text-[color:var(--color-muted-foreground)]">
+              The variable you&apos;re looking for doesn&apos;t exist or you don&apos;t have
+              permission to view it.
             </p>
-            <Button onClick={() => router.push('/variables')}>
-              Back to Variables
-            </Button>
+            <Button onClick={() => router.push('/variables')}>Back to Variables</Button>
           </div>
         </div>
       </div>
@@ -150,15 +152,24 @@ export default function EditVariablePage({ params }: EditVariablePageProps) {
   }
 
   return (
-    <div className="min-h-screen p-6 bg-[color:var(--color-background)]">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen bg-[color:var(--color-background)] p-6">
+      <div className="mx-auto max-w-4xl space-y-6">
         {/* Header */}
         <div>
-          <h1 className="flex items-center gap-3 text-2xl font-bold text-[color:var(--color-foreground)] mb-2">
-            <div className="w-8 h-8 bg-[color:var(--color-accent)] rounded-[var(--radius)] flex items-center justify-center">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="4"/>
-                <path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"/>
+          <h1 className="mb-2 flex items-center gap-3 text-2xl font-bold text-[color:var(--color-foreground)]">
+            <div className="flex h-8 w-8 items-center justify-center rounded-[var(--radius)] bg-[color:var(--color-accent)]">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="12" cy="12" r="4" />
+                <path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8" />
               </svg>
             </div>
             Edit Variable
@@ -170,9 +181,9 @@ export default function EditVariablePage({ params }: EditVariablePageProps) {
 
         {/* Form */}
         <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             {/* Main Content */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="space-y-6 lg:col-span-2">
               <Card variant="elevated">
                 <CardHeader>
                   <CardTitle>Variable Details</CardTitle>
@@ -182,7 +193,7 @@ export default function EditVariablePage({ params }: EditVariablePageProps) {
                     <Input
                       label="Key"
                       value={formData.key}
-                      onChange={(e) => setFormData(prev => ({ ...prev, key: e.target.value }))}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, key: e.target.value }))}
                       placeholder="e.g., company_name, user_role, product_type"
                       error={errors.key}
                       required
@@ -191,7 +202,9 @@ export default function EditVariablePage({ params }: EditVariablePageProps) {
                     <Input
                       label="Description"
                       value={formData.description || ''}
-                      onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, description: e.target.value }))
+                      }
                       placeholder="Optional description of this variable"
                       error={errors.description}
                     />
@@ -199,7 +212,7 @@ export default function EditVariablePage({ params }: EditVariablePageProps) {
                     <Textarea
                       label="Value"
                       value={formData.value}
-                      onChange={(e) => setFormData(prev => ({ ...prev, value: e.target.value }))}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, value: e.target.value }))}
                       placeholder="Enter value..."
                       rows={6}
                       error={errors.value}
@@ -207,7 +220,7 @@ export default function EditVariablePage({ params }: EditVariablePageProps) {
                     />
 
                     {errors.submit && (
-                      <div className="p-3 rounded-[var(--radius)] text-sm bg-[color:var(--color-danger)]/10 text-[color:var(--color-danger)] border border-[color:var(--color-danger)]/20">
+                      <div className="rounded-[var(--radius)] border border-[color:var(--color-danger)]/20 bg-[color:var(--color-danger)]/10 p-3 text-sm text-[color:var(--color-danger)]">
                         {errors.submit}
                       </div>
                     )}
@@ -226,18 +239,22 @@ export default function EditVariablePage({ params }: EditVariablePageProps) {
                 <CardContent>
                   <div className="space-y-3 text-sm">
                     <div>
-                      <h4 className="font-medium text-[color:var(--color-foreground)] mb-1">Template Syntax</h4>
+                      <h4 className="mb-1 font-medium text-[color:var(--color-foreground)]">
+                        Template Syntax
+                      </h4>
                       <p className="text-[color:var(--color-muted-foreground)]">
                         Use your variable in prompts with double braces:
                       </p>
-                      <code className="block mt-1 p-2 bg-[color:var(--color-surface-1)] rounded text-xs font-mono">
+                      <code className="mt-1 block rounded bg-[color:var(--color-surface-1)] p-2 font-mono text-xs">
                         {`{{${formData.key || 'your_key'}}}`}
                       </code>
                     </div>
-                    
+
                     <div>
-                      <h4 className="font-medium text-[color:var(--color-foreground)] mb-1">Key Format</h4>
-                      <ul className="text-[color:var(--color-muted-foreground)] text-xs space-y-1">
+                      <h4 className="mb-1 font-medium text-[color:var(--color-foreground)]">
+                        Key Format
+                      </h4>
+                      <ul className="space-y-1 text-xs text-[color:var(--color-muted-foreground)]">
                         <li>• Only letters, numbers, and underscores</li>
                         <li>• No spaces or special characters</li>
                         <li>• Use snake_case for readability</li>
@@ -245,14 +262,16 @@ export default function EditVariablePage({ params }: EditVariablePageProps) {
                     </div>
 
                     <div>
-                      <h4 className="font-medium text-[color:var(--color-foreground)] mb-1">Last Updated</h4>
-                      <p className="text-[color:var(--color-muted-foreground)] text-xs">
+                      <h4 className="mb-1 font-medium text-[color:var(--color-foreground)]">
+                        Last Updated
+                      </h4>
+                      <p className="text-xs text-[color:var(--color-muted-foreground)]">
                         {new Date(variable.updatedAt).toLocaleDateString(undefined, {
                           year: 'numeric',
                           month: 'long',
                           day: 'numeric',
                           hour: '2-digit',
-                          minute: '2-digit'
+                          minute: '2-digit',
                         })}
                       </p>
                     </div>
@@ -269,14 +288,18 @@ export default function EditVariablePage({ params }: EditVariablePageProps) {
                   <CardContent>
                     <div className="space-y-2 text-sm">
                       <div>
-                        <span className="text-[color:var(--color-muted-foreground)]">Template:</span>
-                        <code className="block mt-1 p-2 bg-[color:var(--color-surface-1)] rounded text-xs font-mono">
+                        <span className="text-[color:var(--color-muted-foreground)]">
+                          Template:
+                        </span>
+                        <code className="mt-1 block rounded bg-[color:var(--color-surface-1)] p-2 font-mono text-xs">
                           {`{{${formData.key}}}`}
                         </code>
                       </div>
                       <div>
-                        <span className="text-[color:var(--color-muted-foreground)]">Will become:</span>
-                        <div className="mt-1 p-2 bg-[color:var(--color-surface-1)] rounded text-xs">
+                        <span className="text-[color:var(--color-muted-foreground)]">
+                          Will become:
+                        </span>
+                        <div className="mt-1 rounded bg-[color:var(--color-surface-1)] p-2 text-xs">
                           {formData.value}
                         </div>
                       </div>

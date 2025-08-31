@@ -1,31 +1,35 @@
-"use client";
+'use client';
 
-import React from "react";
-import { useRouter } from "next/navigation";
-import { authClient } from "@/lib/auth-client";
-import { TestingMainContent } from "@/components/testing/TestingMainContent";
-import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
-import { useScenarios } from "@/hooks/useScenarios";
-import { useOnboarding } from "@/hooks/useOnboarding";
-import { WelcomeDialog } from "@/components/ui/WelcomeDialog";
-import type { ModelConfig } from "@/lib/types";
-import { SimulateResponseBody } from "@/lib/types";
+import React from 'react';
+import { useRouter } from 'next/navigation';
+import { authClient } from '@/lib/auth-client';
+import { TestingMainContent } from '@/components/testing/TestingMainContent';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { useScenarios } from '@/hooks/useScenarios';
+import { useOnboarding } from '@/hooks/useOnboarding';
+import { WelcomeDialog } from '@/components/ui/WelcomeDialog';
+import type { ModelConfig } from '@/lib/types';
+import { SimulateResponseBody } from '@/lib/types';
 
 export default function PromptTestingPage() {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
   const scenarios = useScenarios();
   const onboarding = useOnboarding();
-  
-  const [selectedPromptId, setSelectedPromptId] = React.useState<string>("");
-  const [oldPrompt, setOldPrompt] = React.useState<string>(`# Booking policy\n\n- Walk-ins welcome\n- Appointments prioritized`);
-  const [newPrompt, setNewPrompt] = React.useState<string>(`# Booking policy (v2)\n\n- Appointments required after 5pm\n- 10 min grace period`);
-  const [scenarioKey, setScenarioKey] = React.useState<string>("");
-  const [model, setModel] = React.useState<ModelConfig>({ 
-    model: "gpt-5", 
-    reasoningEffort: "medium", 
-    verbosity: "medium", 
-    serviceTier: "default" 
+
+  const [selectedPromptId, setSelectedPromptId] = React.useState<string>('');
+  const [oldPrompt, setOldPrompt] = React.useState<string>(
+    `# Booking policy\n\n- Walk-ins welcome\n- Appointments prioritized`,
+  );
+  const [newPrompt, setNewPrompt] = React.useState<string>(
+    `# Booking policy (v2)\n\n- Appointments required after 5pm\n- 10 min grace period`,
+  );
+  const [scenarioKey, setScenarioKey] = React.useState<string>('');
+  const [model, setModel] = React.useState<ModelConfig>({
+    model: 'gpt-5',
+    reasoningEffort: 'medium',
+    verbosity: 'medium',
+    serviceTier: 'default',
   });
   const [sim, setSim] = React.useState<SimulateResponseBody | null>(null);
   const [loading, setLoading] = React.useState<boolean>(false);
@@ -54,15 +58,18 @@ export default function PromptTestingPage() {
   };
 
   const { markScenarioAsUsed } = scenarios;
-  const handleScenarioSwitch = React.useCallback((scenarioId: string) => {
-    setScenarioKey(scenarioId);
-    markScenarioAsUsed(scenarioId);
-  }, [markScenarioAsUsed]);
+  const handleScenarioSwitch = React.useCallback(
+    (scenarioId: string) => {
+      setScenarioKey(scenarioId);
+      markScenarioAsUsed(scenarioId);
+    },
+    [markScenarioAsUsed],
+  );
 
   // Ensure a valid scenario is selected once scenarios load
   React.useEffect(() => {
     if (!scenarios.loading && scenarios.scenarios.length > 0) {
-      const hasSelected = scenarios.scenarios.some(s => s.id === scenarioKey);
+      const hasSelected = scenarios.scenarios.some((s) => s.id === scenarioKey);
       if (!hasSelected) {
         setScenarioKey(scenarios.scenarios[0].id);
       }
@@ -75,18 +82,18 @@ export default function PromptTestingPage() {
     onRestart: handleRestart,
     onScenarioSwitch: handleScenarioSwitch,
     scenarios: scenarios.scenarios,
-    disabled: loading || !selectedPromptId || !hasApiKeys
+    disabled: loading || !selectedPromptId || !hasApiKeys,
   });
 
   async function runSimulation() {
     if (!scenarioKey) {
-      setError("Please select a published scenario to run simulation");
+      setError('Please select a published scenario to run simulation');
       return;
     }
 
     // Mark scenario as used when starting simulation
     scenarios.markScenarioAsUsed(scenarioKey);
-    
+
     // Mark first test as run for onboarding
     if (!onboarding.onboardingState.hasRunFirstTest) {
       onboarding.markFirstTestRun();
@@ -99,13 +106,13 @@ export default function PromptTestingPage() {
 
       // Initialize empty conversations for streaming
       setSim({
-        old: { title: "Current Prompt", messages: [] },
-        new: { title: "Edited Prompt", messages: [] }
+        old: { title: 'Current Prompt', messages: [] },
+        new: { title: 'Edited Prompt', messages: [] },
       });
 
-      const res = await fetch("/api/simulate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const res = await fetch('/api/simulate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ oldPrompt, newPrompt, scenarioKey, modelConfig: model }),
       });
 
@@ -115,10 +122,10 @@ export default function PromptTestingPage() {
       }
 
       const reader = res.body?.getReader();
-      if (!reader) throw new Error("No response stream");
+      if (!reader) throw new Error('No response stream');
 
       const decoder = new TextDecoder();
-      let buffer = "";
+      let buffer = '';
 
       while (true) {
         const { done, value } = await reader.read();
@@ -126,7 +133,7 @@ export default function PromptTestingPage() {
 
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split('\n');
-        buffer = lines.pop() || "";
+        buffer = lines.pop() || '';
 
         for (const line of lines) {
           if (line.startsWith('data: ')) {
@@ -143,7 +150,7 @@ export default function PromptTestingPage() {
       if (e instanceof Error) {
         setError(e.message);
       } else {
-        setError("Failed to simulate");
+        setError('Failed to simulate');
       }
     } finally {
       setLoading(false);
@@ -160,50 +167,50 @@ export default function PromptTestingPage() {
       case 'message':
         if (data.data.role === 'user') {
           // User message - set streaming to true for this conversation (waiting for AI response)
-          setStreamingState(current => ({
+          setStreamingState((current) => ({
             ...current,
-            [data.promptType]: true
+            [data.promptType]: true,
           }));
         } else if (data.data.role === 'assistant') {
           // AI response - set streaming to false for this conversation
-          setStreamingState(current => ({
+          setStreamingState((current) => ({
             ...current,
-            [data.promptType]: false
+            [data.promptType]: false,
           }));
         }
 
-        setSim(current => {
+        setSim((current) => {
           if (!current) return null;
-          
+
           const targetConversation = data.promptType === 'current' ? 'old' : 'new';
           return {
             ...current,
             [targetConversation]: {
               ...current[targetConversation],
-              messages: [...current[targetConversation].messages, data.data]
-            }
+              messages: [...current[targetConversation].messages, data.data],
+            },
           };
         });
         break;
 
       case 'complete':
-        setSim(current => {
+        setSim((current) => {
           if (!current) return null;
-          
+
           const targetConversation = data.promptType === 'current' ? 'old' : 'new';
           return {
             ...current,
             [targetConversation]: {
               ...current[targetConversation],
-              title: data.data.title
-            }
+              title: data.data.title,
+            },
           };
         });
-        
+
         // Stop streaming for this conversation
-        setStreamingState(current => ({
+        setStreamingState((current) => ({
           ...current,
-          [data.promptType]: false
+          [data.promptType]: false,
         }));
         break;
 
@@ -221,14 +228,14 @@ export default function PromptTestingPage() {
 
   React.useEffect(() => {
     if (!isPending && !session) {
-      router.replace("/login?redirect=/testing");
+      router.replace('/login?redirect=/testing');
     }
   }, [isPending, session, router]);
 
   React.useEffect(() => {
     const fetchApiKeys = async () => {
       if (!session) return;
-      
+
       setApiKeysLoading(true);
       try {
         const response = await fetch('/api/user/api-keys');
@@ -248,7 +255,7 @@ export default function PromptTestingPage() {
 
     const fetchPrompts = async () => {
       if (!session) return;
-      
+
       setPromptsLoading(true);
       try {
         const response = await fetch('/api/prompts?status=PUBLISHED');
@@ -273,7 +280,8 @@ export default function PromptTestingPage() {
   if (!session) return null;
 
   // Calculate run button availability
-  const canRunSimulation = selectedPromptId && scenarioKey && hasApiKeys && !apiKeysLoading && hasPrompts;
+  const canRunSimulation =
+    selectedPromptId && scenarioKey && hasApiKeys && !apiKeysLoading && hasPrompts;
 
   return (
     <div className="min-h-screen bg-[color:var(--color-background)]">
@@ -303,13 +311,19 @@ export default function PromptTestingPage() {
             loading: scenarios.loading,
             error: scenarios.error,
           }}
-          statusMessage={!loading && !apiKeysLoading && !promptsLoading ? (
-            !hasPrompts ? "No published prompts available" :
-            hasPrompts && !selectedPromptId ? "Please select a prompt" :
-            hasPrompts && selectedPromptId && !scenarioKey ? "Please select a test scenario" :
-            hasPrompts && selectedPromptId && scenarioKey && !hasApiKeys ? "Please configure API keys in Settings" :
-            null
-          ) : null}
+          statusMessage={
+            !loading && !apiKeysLoading && !promptsLoading
+              ? !hasPrompts
+                ? 'No published prompts available'
+                : hasPrompts && !selectedPromptId
+                  ? 'Please select a prompt'
+                  : hasPrompts && selectedPromptId && !scenarioKey
+                    ? 'Please select a test scenario'
+                    : hasPrompts && selectedPromptId && scenarioKey && !hasApiKeys
+                      ? 'Please configure API keys in Settings'
+                      : null
+              : null
+          }
         />
       </div>
 
@@ -321,7 +335,7 @@ export default function PromptTestingPage() {
           onboarding.markWelcomeSeen();
           // If user needs to create prompts/scenarios, redirect them
           const nextStep = onboarding.getNextStep();
-          if (nextStep && nextStep.href !== "/testing") {
+          if (nextStep && nextStep.href !== '/testing') {
             router.push(nextStep.href);
           }
         }}

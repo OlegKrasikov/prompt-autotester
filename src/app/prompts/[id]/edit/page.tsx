@@ -1,11 +1,11 @@
-'use client'
+'use client';
 
-import React from "react";
-import { useRouter } from "next/navigation";
-import { authClient } from "@/lib/auth-client";
-import { PromptFull } from "@/lib/types";
-import PromptForm from "@/components/PromptForm";
-import { Spinner } from "@/components/ui/Spinner";
+import React from 'react';
+import { useRouter } from 'next/navigation';
+import { authClient } from '@/lib/auth-client';
+import { PromptFull } from '@/lib/types';
+import PromptForm from '@/components/PromptForm';
+import { Spinner } from '@/components/ui/Spinner';
 
 interface EditPromptPageProps {
   params: Promise<{
@@ -19,7 +19,7 @@ export default function EditPromptPage({ params }: EditPromptPageProps) {
   const [prompt, setPrompt] = React.useState<PromptFull | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
-  
+
   const resolvedParams = React.use(params);
 
   React.useEffect(() => {
@@ -59,7 +59,7 @@ export default function EditPromptPage({ params }: EditPromptPageProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen p-6 bg-[color:var(--color-background)] flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-[color:var(--color-background)] p-6">
         <div className="text-center">
           <Spinner size="lg" />
           <p className="mt-4 text-[color:var(--color-muted-foreground)]">Loading prompt...</p>
@@ -70,17 +70,17 @@ export default function EditPromptPage({ params }: EditPromptPageProps) {
 
   if (error || !prompt) {
     return (
-      <div className="min-h-screen p-6 bg-[color:var(--color-background)] flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-[color:var(--color-background)] p-6">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-[color:var(--color-foreground)] mb-2">
+          <h1 className="mb-2 text-2xl font-bold text-[color:var(--color-foreground)]">
             {error || 'Prompt not found'}
           </h1>
-          <p className="text-[color:var(--color-muted-foreground)] mb-6">
+          <p className="mb-6 text-[color:var(--color-muted-foreground)]">
             The prompt you're looking for doesn't exist or you don't have permission to edit it.
           </p>
           <button
             onClick={() => router.push('/prompts')}
-            className="px-4 py-2 bg-[color:var(--color-accent)] text-white rounded-[var(--radius)] hover:bg-[color:var(--color-accent-hover)] transition-colors"
+            className="rounded-[var(--radius)] bg-[color:var(--color-accent)] px-4 py-2 text-white transition-colors hover:bg-[color:var(--color-accent-hover)]"
           >
             Back to Prompts
           </button>

@@ -1,9 +1,9 @@
-'use client'
+'use client';
 
-import React from "react";
-import { useRouter } from "next/navigation";
-import { authClient } from "@/lib/auth-client";
-import PromptForm from "@/components/PromptForm";
+import React from 'react';
+import { useRouter } from 'next/navigation';
+import { authClient } from '@/lib/auth-client';
+import PromptForm from '@/components/PromptForm';
 
 export default function NewPromptPage() {
   const router = useRouter();
@@ -11,7 +11,7 @@ export default function NewPromptPage() {
 
   React.useEffect(() => {
     if (!isPending && !session) {
-      router.replace("/login?redirect=/prompts/new");
+      router.replace('/login?redirect=/prompts/new');
     }
   }, [isPending, session, router]);
 

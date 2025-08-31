@@ -10,6 +10,7 @@ We use Neon Postgres via Prisma as the ORM.
 ## Models
 
 ### Authentication Models
+
 Added by Better Auth CLI:
 
 - `User` – core user profile
@@ -18,6 +19,7 @@ Added by Better Auth CLI:
 - `Verification` – email verification & reset tokens
 
 ### Scenario Management Models
+
 Added for test scenario management with user ownership:
 
 - `Scenario` – core scenario definition with metadata (user-owned)
@@ -28,19 +30,22 @@ Added for test scenario management with user ownership:
 - `ScenarioSuiteItem` – many-to-many relationship for suites
 
 ### Prompt Management Models
+
 Added for prompt creation and testing workflows:
 
 - `Prompt` – user-owned prompts with content and metadata
 - `Variable` – user-owned key-value pairs for reusable content with unique key constraints
 
 ### User Settings Models
+
 Added for user-specific configuration:
 
 - `UserApiKey` – encrypted AI model API keys (user-isolated)
 
 ### Enums
+
 - `ScenarioStatus` – DRAFT | PUBLISHED | ARCHIVED
-- `ScenarioTurnType` – USER | EXPECT  
+- `ScenarioTurnType` – USER | EXPECT
 - `ExpectationType` – MUST_CONTAIN | MUST_CONTAIN_ANY | MUST_NOT_CONTAIN | REGEX | SEMANTIC_ASSERT
 - `PromptStatus` – DRAFT | PUBLISHED | ARCHIVED
 
@@ -76,7 +81,7 @@ model Scenario {
   tags         String[]               @default([])
   createdAt    DateTime               @default(now())
   updatedAt    DateTime               @updatedAt
-  
+
   user         User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
   turns        ScenarioTurn[]
   expectations ScenarioExpectation[]
@@ -89,7 +94,7 @@ model ScenarioTurn {
   orderIndex  Int
   turnType    ScenarioTurnType
   userText    String?
-  
+
   scenario     Scenario @relation(fields: [scenarioId], references: [id])
   expectations ScenarioExpectation[]
 }
@@ -147,12 +152,14 @@ model UserApiKey {
 ## Security Features
 
 ### API Key Encryption
+
 - **Algorithm**: AES-256-CBC encryption for all stored API keys
 - **Key Derivation**: PBKDF2 with salt using `crypto.scryptSync`
 - **User Isolation**: Unique constraint ensures one key per provider per user
 - **Soft Delete**: `isActive` flag allows key deactivation without data loss
 
 ### Access Control
+
 - All API key operations require authentication
 - Users can only access their own keys
 - Cascade delete removes user's keys when user is deleted

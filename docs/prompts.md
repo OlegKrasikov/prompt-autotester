@@ -41,4 +41,3 @@ model Prompt {
 - `/prompts/new`, `/prompts/[id]/edit`: form with name, description, content, status, tags
 - Variable validation and highlighting in content (`{{key}}`)
 - Published prompts shown in testing via `PromptPicker`
-

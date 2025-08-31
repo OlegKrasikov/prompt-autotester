@@ -5,10 +5,7 @@ import { okJson, unauthorized, notFound, serverError } from '@/server/http/respo
 import { scenariosService } from '@/server/services/scenariosService';
 import { Prisma } from '@prisma/client';
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const user = await getCurrentUser(request);
     if (!user) {

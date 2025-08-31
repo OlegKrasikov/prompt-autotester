@@ -1,7 +1,11 @@
-import { prisma } from "@/lib/prisma";
-import { ScenarioFiltersSchema, CreateScenarioSchema, UpdateScenarioSchema } from "@/server/validation/schemas";
-import { ScenarioFilters, ScenarioListItem, ScenarioStatus } from "@/lib/types";
-import { Prisma } from "@prisma/client";
+import { prisma } from '@/lib/prisma';
+import {
+  ScenarioFiltersSchema,
+  CreateScenarioSchema,
+  UpdateScenarioSchema,
+} from '@/server/validation/schemas';
+import { ScenarioFilters, ScenarioListItem, ScenarioStatus } from '@/lib/types';
+import { Prisma } from '@prisma/client';
 
 export const scenariosService = {
   async list(userId: string, filters: ScenarioFilters) {
@@ -9,8 +13,8 @@ export const scenariosService = {
     const where: any = { userId };
     if (parsed.search) {
       where.OR = [
-        { name: { contains: parsed.search, mode: "insensitive" } },
-        { id: { contains: parsed.search, mode: "insensitive" } },
+        { name: { contains: parsed.search, mode: 'insensitive' } },
+        { id: { contains: parsed.search, mode: 'insensitive' } },
         { tags: { hasSome: [parsed.search] } },
       ];
     }
@@ -21,7 +25,7 @@ export const scenariosService = {
     const scenarios = await prisma.scenario.findMany({
       where,
       include: { _count: { select: { turns: true } } },
-      orderBy: { updatedAt: "desc" },
+      orderBy: { updatedAt: 'desc' },
     });
 
     const list: ScenarioListItem[] = scenarios.map((s) => ({
@@ -42,8 +46,8 @@ export const scenariosService = {
 
   async listPublished(userId: string) {
     const scenarios = await prisma.scenario.findMany({
-      where: { userId, status: "PUBLISHED" },
-      orderBy: { updatedAt: "desc" },
+      where: { userId, status: 'PUBLISHED' },
+      orderBy: { updatedAt: 'desc' },
       select: {
         id: true,
         name: true,
@@ -77,7 +81,7 @@ export const scenariosService = {
       include: {
         turns: {
           include: { expectations: true },
-          orderBy: { orderIndex: "asc" },
+          orderBy: { orderIndex: 'asc' },
         },
       },
     });
@@ -86,7 +90,12 @@ export const scenariosService = {
   async create(userId: string, body: unknown) {
     const parsed = CreateScenarioSchema.parse(body);
     const dupe = await prisma.scenario.findFirst({ where: { name: parsed.name, userId } });
-    if (dupe) return { error: true as const, code: "DUPLICATE", message: "Scenario with this name already exists" };
+    if (dupe)
+      return {
+        error: true as const,
+        code: 'DUPLICATE',
+        message: 'Scenario with this name already exists',
+      };
 
     const created = await prisma.$transaction(async (tx) => {
       const scenario = await tx.scenario.create({
@@ -94,8 +103,8 @@ export const scenariosService = {
           userId,
           name: parsed.name,
           description: parsed.description,
-          locale: parsed.locale || "en",
-          status: parsed.status || "DRAFT",
+          locale: parsed.locale || 'en',
+          status: parsed.status || 'DRAFT',
           tags: parsed.tags || [],
         },
       });
@@ -135,7 +144,8 @@ export const scenariosService = {
   async update(userId: string, id: string, body: unknown) {
     const parsed = UpdateScenarioSchema.parse(body);
     const existing = await prisma.scenario.findFirst({ where: { id, userId } });
-    if (!existing) return { error: true as const, code: "NOT_FOUND", message: "Scenario not found" };
+    if (!existing)
+      return { error: true as const, code: 'NOT_FOUND', message: 'Scenario not found' };
 
     await prisma.$transaction(async (tx) => {
       await tx.scenarioTurn.deleteMany({ where: { scenarioId: id } });
@@ -144,7 +154,7 @@ export const scenariosService = {
         data: {
           name: parsed.name,
           description: parsed.description,
-          locale: parsed.locale || "en",
+          locale: parsed.locale || 'en',
           status: parsed.status,
           tags: parsed.tags || [],
           version: { increment: 1 },
@@ -182,7 +192,8 @@ export const scenariosService = {
 
   async remove(userId: string, id: string) {
     const existing = await prisma.scenario.findFirst({ where: { id, userId } });
-    if (!existing) return { error: true as const, code: "NOT_FOUND", message: "Scenario not found" };
+    if (!existing)
+      return { error: true as const, code: 'NOT_FOUND', message: 'Scenario not found' };
     await prisma.scenario.delete({ where: { id } });
     return { error: false as const };
   },
@@ -191,10 +202,11 @@ export const scenariosService = {
     const existing = await prisma.scenario.findFirst({
       where: { id, userId },
       include: {
-        turns: { include: { expectations: true }, orderBy: { orderIndex: "asc" } },
+        turns: { include: { expectations: true }, orderBy: { orderIndex: 'asc' } },
       },
     });
-    if (!existing) return { error: true as const, code: "NOT_FOUND", message: "Scenario not found" };
+    if (!existing)
+      return { error: true as const, code: 'NOT_FOUND', message: 'Scenario not found' };
 
     let name = `${existing.name} (Copy)`;
     let counter = 1;
@@ -210,7 +222,7 @@ export const scenariosService = {
           name,
           description: existing.description,
           locale: existing.locale,
-          status: "DRAFT",
+          status: 'DRAFT',
           tags: existing.tags,
         },
       });
@@ -243,4 +255,3 @@ export const scenariosService = {
     return { error: false as const, data: full };
   },
 };
-

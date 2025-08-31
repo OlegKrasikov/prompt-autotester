@@ -1,10 +1,10 @@
-'use client'
+'use client';
 
-import React from "react";
-import { useRouter } from "next/navigation";
-import { authClient } from "@/lib/auth-client";
-import { ScenarioFull } from "@/lib/types";
-import ScenarioEditor from "@/components/ScenarioEditor";
+import React from 'react';
+import { useRouter } from 'next/navigation';
+import { authClient } from '@/lib/auth-client';
+import { ScenarioFull } from '@/lib/types';
+import ScenarioEditor from '@/components/ScenarioEditor';
 
 export default function EditScenarioPage({ params }: { params: { id: string } }) {
   const router = useRouter();

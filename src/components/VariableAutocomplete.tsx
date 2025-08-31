@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import React from 'react';
 import { VariableListItem } from '@/lib/types';
@@ -12,12 +12,12 @@ interface VariableAutocompleteProps {
   maxHeight?: number;
 }
 
-export function VariableAutocomplete({ 
-  query, 
-  position, 
-  onSelect, 
-  onClose, 
-  maxHeight = 200 
+export function VariableAutocomplete({
+  query,
+  position,
+  onSelect,
+  onClose,
+  maxHeight = 200,
 }: VariableAutocompleteProps) {
   const filteredVariables = useVariableAutocomplete(query);
   const [selectedIndex, setSelectedIndex] = React.useState(0);
@@ -35,15 +35,11 @@ export function VariableAutocomplete({
       switch (e.key) {
         case 'ArrowDown':
           e.preventDefault();
-          setSelectedIndex(prev => 
-            prev < filteredVariables.length - 1 ? prev + 1 : 0
-          );
+          setSelectedIndex((prev) => (prev < filteredVariables.length - 1 ? prev + 1 : 0));
           break;
         case 'ArrowUp':
           e.preventDefault();
-          setSelectedIndex(prev => 
-            prev > 0 ? prev - 1 : filteredVariables.length - 1
-          );
+          setSelectedIndex((prev) => (prev > 0 ? prev - 1 : filteredVariables.length - 1));
           break;
         case 'Enter':
           e.preventDefault();
@@ -79,17 +75,15 @@ export function VariableAutocomplete({
     return (
       <div
         data-variable-autocomplete
-        className="absolute z-50 bg-[color:var(--color-surface)] border border-[color:var(--color-border)] rounded-[var(--radius)] shadow-[var(--shadow-lg)] p-3 min-w-[250px]"
+        className="absolute z-50 min-w-[250px] rounded-[var(--radius)] border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-3 shadow-[var(--shadow-lg)]"
         style={{
           top: position.top,
           left: position.left,
           maxHeight,
         }}
       >
-        <div className="text-sm text-[color:var(--color-muted-foreground)]">
-          No variables found
-        </div>
-        <div className="text-xs text-[color:var(--color-muted-foreground)] mt-1">
+        <div className="text-sm text-[color:var(--color-muted-foreground)]">No variables found</div>
+        <div className="mt-1 text-xs text-[color:var(--color-muted-foreground)]">
           Create variables in the Variables page
         </div>
       </div>
@@ -99,15 +93,15 @@ export function VariableAutocomplete({
   return (
     <div
       data-variable-autocomplete
-      className="absolute z-50 bg-[color:var(--color-surface)] border border-[color:var(--color-border)] rounded-[var(--radius)] shadow-[var(--shadow-lg)] overflow-hidden min-w-[280px]"
+      className="absolute z-50 min-w-[280px] overflow-hidden rounded-[var(--radius)] border border-[color:var(--color-border)] bg-[color:var(--color-surface)] shadow-[var(--shadow-lg)]"
       style={{
         top: position.top,
         left: position.left,
         maxHeight,
       }}
     >
-      <div className="px-3 py-1.5 bg-[color:var(--color-surface-1)] border-b border-[color:var(--color-divider)]">
-        <div className="text-xs font-medium text-[color:var(--color-muted-foreground)] uppercase tracking-wide">
+      <div className="border-b border-[color:var(--color-divider)] bg-[color:var(--color-surface-1)] px-3 py-1.5">
+        <div className="text-xs font-medium tracking-wide text-[color:var(--color-muted-foreground)] uppercase">
           Variables
         </div>
       </div>
@@ -115,40 +109,36 @@ export function VariableAutocomplete({
         {filteredVariables.map((variable, index) => (
           <div
             key={variable.id}
-            className={`px-3 py-2 cursor-pointer transition-colors ${
+            className={`cursor-pointer px-3 py-2 transition-colors ${
               index === selectedIndex
                 ? 'bg-[color:var(--color-accent)]/10 text-[color:var(--color-accent)]'
-                : 'hover:bg-[color:var(--color-surface-1)] text-[color:var(--color-foreground)]'
+                : 'text-[color:var(--color-foreground)] hover:bg-[color:var(--color-surface-1)]'
             }`}
             onClick={() => onSelect(variable)}
             onMouseEnter={() => setSelectedIndex(index)}
           >
             <div className="flex items-center justify-between">
-              <div className="flex-1 min-w-0">
+              <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="font-mono text-sm font-medium">
-                    {variable.key}
-                  </span>
-                  <span className="text-xs text-[color:var(--color-muted-foreground)] font-mono">
+                  <span className="font-mono text-sm font-medium">{variable.key}</span>
+                  <span className="font-mono text-xs text-[color:var(--color-muted-foreground)]">
                     {`{{${variable.key}}}`}
                   </span>
                 </div>
                 {variable.description && (
-                  <div className="text-xs text-[color:var(--color-muted-foreground)] truncate mt-1">
+                  <div className="mt-1 truncate text-xs text-[color:var(--color-muted-foreground)]">
                     {variable.description}
                   </div>
                 )}
               </div>
             </div>
-            <div className="text-xs text-[color:var(--color-muted-foreground)] mt-1 truncate">
-              {variable.value.length > 50 
-                ? `${variable.value.slice(0, 50)}...` 
-                : variable.value}
+            <div className="mt-1 truncate text-xs text-[color:var(--color-muted-foreground)]">
+              {variable.value.length > 50 ? `${variable.value.slice(0, 50)}...` : variable.value}
             </div>
           </div>
         ))}
       </div>
-      <div className="px-3 py-1.5 bg-[color:var(--color-surface-1)] border-t border-[color:var(--color-divider)]">
+      <div className="border-t border-[color:var(--color-divider)] bg-[color:var(--color-surface-1)] px-3 py-1.5">
         <div className="text-xs text-[color:var(--color-muted-foreground)]">
           ↑↓ Navigate • Enter Select • Esc Close
         </div>

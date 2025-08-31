@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 import {
   SCENARIO_STATUS,
   SCENARIO_TURN_TYPE,
@@ -7,7 +7,7 @@ import {
   REASONING_EFFORT,
   VERBOSITY,
   SERVICE_TIER,
-} from "@/lib/constants/enums";
+} from '@/lib/constants/enums';
 
 // Shared enums
 export const ScenarioStatusSchema = z.enum(SCENARIO_STATUS);
@@ -47,7 +47,11 @@ export const ScenarioFiltersSchema = z.object({
 });
 
 export const ScenarioExpectationSchema = z.object({
-  expectationKey: z.string().min(1).max(100).regex(/^[a-zA-Z0-9_-]+$/),
+  expectationKey: z
+    .string()
+    .min(1)
+    .max(100)
+    .regex(/^[a-zA-Z0-9_-]+$/),
   expectationType: ExpectationTypeSchema,
   argsJson: z.record(z.unknown()).default({}),
   weight: z.number().int().optional(),
@@ -63,7 +67,7 @@ export const ScenarioTurnSchema = z.object({
 export const CreateScenarioSchema = z.object({
   name: z.string().min(1).max(100),
   description: z.string().optional(),
-  locale: z.string().default("en"),
+  locale: z.string().default('en'),
   status: ScenarioStatusSchema.optional(),
   tags: z.array(z.string()).optional(),
   turns: z.array(ScenarioTurnSchema).optional(),
@@ -77,7 +81,11 @@ export const VariableFiltersSchema = z.object({
 });
 
 export const CreateVariableSchema = z.object({
-  key: z.string().min(1).max(100).regex(/^[a-zA-Z0-9_]+$/),
+  key: z
+    .string()
+    .min(1)
+    .max(100)
+    .regex(/^[a-zA-Z0-9_]+$/),
   value: z.string().min(1),
   description: z.string().optional(),
 });
@@ -92,16 +100,18 @@ export const ModelConfigSchema = z.object({
   serviceTier: z.enum(SERVICE_TIER).optional(),
 });
 
-export const SimulateRequestSchema = z.object({
-  oldPrompt: z.string().min(1),
-  newPrompt: z.string().min(1),
-  scenarioKey: z.string().min(1),
-  modelConfig: ModelConfigSchema.optional(),
-  model: z.string().optional(), // legacy fallback
-}).refine((data) => !!(data.modelConfig?.model || data.model), {
-  message: "modelConfig.model or model is required",
-  path: ["modelConfig"],
-});
+export const SimulateRequestSchema = z
+  .object({
+    oldPrompt: z.string().min(1),
+    newPrompt: z.string().min(1),
+    scenarioKey: z.string().min(1),
+    modelConfig: ModelConfigSchema.optional(),
+    model: z.string().optional(), // legacy fallback
+  })
+  .refine((data) => !!(data.modelConfig?.model || data.model), {
+    message: 'modelConfig.model or model is required',
+    path: ['modelConfig'],
+  });
 
 export type PromptFiltersInput = z.infer<typeof PromptFiltersSchema>;
 export type CreatePromptInput = z.infer<typeof CreatePromptSchema>;

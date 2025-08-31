@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import React from "react";
-import { VariableListItem } from "@/lib/types";
-import { VariableAutocomplete } from "@/components/VariableAutocomplete";
-import { useVariables } from "@/hooks/useVariables";
+import React from 'react';
+import { VariableListItem } from '@/lib/types';
+import { VariableAutocomplete } from '@/components/VariableAutocomplete';
+import { useVariables } from '@/hooks/useVariables';
 
 export interface PromptTextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
@@ -15,54 +15,57 @@ export interface PromptTextareaProps extends React.TextareaHTMLAttributes<HTMLTe
 }
 
 const PromptTextarea = React.forwardRef<HTMLTextAreaElement, PromptTextareaProps>(
-  ({ 
-    className, 
-    label, 
-    error, 
-    hint, 
-    showCharCount, 
-    maxLength, 
-    id, 
-    value, 
-    onChange,
-    enableVariableAutocomplete = false,
-    ...props 
-  }, ref) => {
+  (
+    {
+      className,
+      label,
+      error,
+      hint,
+      showCharCount,
+      maxLength,
+      id,
+      value,
+      onChange,
+      enableVariableAutocomplete = false,
+      ...props
+    },
+    ref,
+  ) => {
     const containerRef = React.useRef<HTMLDivElement>(null);
     const { variables } = useVariables();
     const generatedId = React.useId();
     const textareaId = id || generatedId;
     const hasError = Boolean(error);
     const charCount = typeof value === 'string' ? value.length : 0;
-    
+
     const textareaRef = React.useRef<HTMLTextAreaElement>(null);
     const overlayRef = React.useRef<HTMLDivElement>(null);
     const overlayContentRef = React.useRef<HTMLDivElement>(null);
     const [showAutocomplete, setShowAutocomplete] = React.useState(false);
     const [autocompleteQuery, setAutocompleteQuery] = React.useState('');
-    const [autocompletePosition, setAutocompletePosition] = React.useState<{ top: number; left: number }>({ top: 0, left: 0 });
+    const [autocompletePosition, setAutocompletePosition] = React.useState<{
+      top: number;
+      left: number;
+    }>({ top: 0, left: 0 });
     const [cursorPosition, setCursorPosition] = React.useState(0);
 
     // Use the forwarded ref or our internal ref
     React.useImperativeHandle(ref, () => textareaRef.current!);
 
-    const baseClasses = "w-full px-3 py-2 text-sm bg-[color:var(--color-surface)] border rounded-[var(--radius)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-0 placeholder:text-[color:var(--color-muted-foreground)] resize-none touch-manipulation";
-    
+    const baseClasses =
+      'w-full px-3 py-2 text-sm bg-[color:var(--color-surface)] border rounded-[var(--radius)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-0 placeholder:text-[color:var(--color-muted-foreground)] resize-none touch-manipulation';
+
     const stateClasses = hasError
-      ? "border-[color:var(--color-danger)] focus:ring-[color:var(--color-danger)]/50 focus:border-[color:var(--color-danger)]"
-      : "border-[color:var(--color-border)] focus:ring-[color:var(--color-accent)]/50 focus:border-[color:var(--color-accent)]";
-    
-    const classes = [
-      baseClasses,
-      stateClasses,
-      className
-    ].filter(Boolean).join(" ");
+      ? 'border-[color:var(--color-danger)] focus:ring-[color:var(--color-danger)]/50 focus:border-[color:var(--color-danger)]'
+      : 'border-[color:var(--color-border)] focus:ring-[color:var(--color-accent)]/50 focus:border-[color:var(--color-accent)]';
+
+    const classes = [baseClasses, stateClasses, className].filter(Boolean).join(' ');
 
     // Keep overlay typography in sync but avoid layout-affecting classes
     const getTypographyClasses = (cn?: string) => {
       if (!cn) return '';
       const tokens = cn.split(/\s+/).filter(Boolean);
-      const safe = tokens.filter(t => /^(leading-|tracking-|font-|text-|tab-)/.test(t));
+      const safe = tokens.filter((t) => /^(leading-|tracking-|font-|text-|tab-)/.test(t));
       return safe.join(' ');
     };
 
@@ -82,10 +85,21 @@ const PromptTextarea = React.forwardRef<HTMLTextAreaElement, PromptTextareaProps
 
       // Mirror critical styles for accurate wrapping
       const propsToCopy = [
-        'fontFamily', 'fontSize', 'fontWeight', 'fontStyle', 'letterSpacing',
-        'textTransform', 'textIndent', 'textAlign', 'lineHeight',
-        'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft',
-        'boxSizing', 'tabSize'
+        'fontFamily',
+        'fontSize',
+        'fontWeight',
+        'fontStyle',
+        'letterSpacing',
+        'textTransform',
+        'textIndent',
+        'textAlign',
+        'lineHeight',
+        'paddingTop',
+        'paddingRight',
+        'paddingBottom',
+        'paddingLeft',
+        'boxSizing',
+        'tabSize',
       ] as const;
 
       propsToCopy.forEach((prop) => {
@@ -102,8 +116,7 @@ const PromptTextarea = React.forwardRef<HTMLTextAreaElement, PromptTextareaProps
 
       const value = textarea.value.substring(0, position);
       // Replace spaces/newlines to preserve layout
-      const safeValue = value
-        .replace(/\n$/g, '\n\u200b'); // zero-width space to keep last line height
+      const safeValue = value.replace(/\n$/g, '\n\u200b'); // zero-width space to keep last line height
 
       const span = document.createElement('span');
       span.textContent = '\u200b'; // marker
@@ -125,8 +138,8 @@ const PromptTextarea = React.forwardRef<HTMLTextAreaElement, PromptTextareaProps
     // Highlight variables in text
     const renderHighlightedText = (text: string) => {
       if (!enableVariableAutocomplete || !text) return text;
-      
-      const validVariableKeys = new Set(variables.map(v => v.key));
+
+      const validVariableKeys = new Set(variables.map((v) => v.key));
       const variableRegex = /\{\{([^}]*)\}\}/g;
       const parts = [];
       let lastIndex = 0;
@@ -139,43 +152,42 @@ const PromptTextarea = React.forwardRef<HTMLTextAreaElement, PromptTextareaProps
           parts.push(
             <span key={`text-${keyCounter++}`} className="text-[color:var(--color-foreground)]">
               {text.substring(lastIndex, match.index)}
-            </span>
+            </span>,
           );
         }
-        
+
         // Add the variable with highlighting
         const variableKey = match[1];
         const isValid = validVariableKeys.has(variableKey);
-        const highlightClass = isValid 
+        const highlightClass = isValid
           ? 'bg-[color:var(--color-success)]/10 text-[color:var(--color-success)]'
           : 'bg-[color:var(--color-danger)]/10 text-[color:var(--color-danger)]';
-        
+
         parts.push(
           <span key={`var-${match.index}`} className={`${highlightClass}`}>
             {match[0]}
-          </span>
+          </span>,
         );
-        
+
         lastIndex = match.index + match[0].length;
       }
-      
+
       // Add remaining text
       if (lastIndex < text.length) {
         parts.push(
           <span key={`text-${keyCounter++}`} className="text-[color:var(--color-foreground)]">
             {text.substring(lastIndex)}
-          </span>
+          </span>,
         );
       }
-      
+
       return parts;
     };
-
 
     const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       const newValue = e.target.value;
       const cursorPos = e.target.selectionStart;
-      
+
       if (onChange) {
         onChange(e);
       }
@@ -186,7 +198,7 @@ const PromptTextarea = React.forwardRef<HTMLTextAreaElement, PromptTextareaProps
 
       // Check if we just typed {{
       const textBeforeCursor = newValue.substring(0, cursorPos);
-      
+
       // Only show autocomplete after {{ is fully typed
       if (textBeforeCursor.endsWith('{{')) {
         setAutocompleteQuery('');
@@ -198,7 +210,8 @@ const PromptTextarea = React.forwardRef<HTMLTextAreaElement, PromptTextareaProps
           ? containerRef.current.getBoundingClientRect()
           : (e.target as HTMLTextAreaElement).getBoundingClientRect();
 
-        const top = taRect.top - containerRect.top + coords.top - e.target.scrollTop + coords.height;
+        const top =
+          taRect.top - containerRect.top + coords.top - e.target.scrollTop + coords.height;
         const left = taRect.left - containerRect.left + coords.left - e.target.scrollLeft;
 
         setAutocompletePosition(clampAutocompletePosition({ top, left }, containerRect));
@@ -208,16 +221,16 @@ const PromptTextarea = React.forwardRef<HTMLTextAreaElement, PromptTextareaProps
         // Check if we're inside {{ }}
         const lastOpenBrace = textBeforeCursor.lastIndexOf('{{');
         const lastCloseBrace = textBeforeCursor.lastIndexOf('}}');
-        
+
         // If we have {{ after the last }} (or no }} at all), we might be typing a variable
         if (lastOpenBrace > lastCloseBrace && lastOpenBrace !== -1) {
           const queryStart = lastOpenBrace + 2;
           const query = textBeforeCursor.substring(queryStart);
-          
+
           // Only show autocomplete if query doesn't contain invalid characters
           if (!/[{}]/.test(query)) {
             setAutocompleteQuery(query);
-            
+
             // Calculate caret position relative to container
             const coords = getCaretCoordinates(e.target, cursorPos);
             const taRect = e.target.getBoundingClientRect();
@@ -225,11 +238,12 @@ const PromptTextarea = React.forwardRef<HTMLTextAreaElement, PromptTextareaProps
               ? containerRef.current.getBoundingClientRect()
               : (e.target as HTMLTextAreaElement).getBoundingClientRect();
 
-            const top = taRect.top - containerRect.top + coords.top - e.target.scrollTop + coords.height;
+            const top =
+              taRect.top - containerRect.top + coords.top - e.target.scrollTop + coords.height;
             const left = taRect.left - containerRect.left + coords.left - e.target.scrollLeft;
 
             setAutocompletePosition(clampAutocompletePosition({ top, left }, containerRect));
-            
+
             setShowAutocomplete(true);
           } else {
             setShowAutocomplete(false);
@@ -246,25 +260,25 @@ const PromptTextarea = React.forwardRef<HTMLTextAreaElement, PromptTextareaProps
       const textarea = textareaRef.current;
       const currentValue = textarea.value;
       const cursorPos = cursorPosition;
-      
+
       // Find the {{ before cursor
       const textBeforeCursor = currentValue.substring(0, cursorPos);
       const lastOpenBrace = textBeforeCursor.lastIndexOf('{{');
-      
+
       if (lastOpenBrace !== -1) {
         // Replace from {{ to cursor with the complete variable
-        const newValue = 
-          currentValue.substring(0, lastOpenBrace) + 
-          `{{${variable.key}}}` + 
+        const newValue =
+          currentValue.substring(0, lastOpenBrace) +
+          `{{${variable.key}}}` +
           currentValue.substring(cursorPos);
-        
+
         // Create synthetic event
         const syntheticEvent = {
-          target: { value: newValue, selectionStart: lastOpenBrace + variable.key.length + 4 }
+          target: { value: newValue, selectionStart: lastOpenBrace + variable.key.length + 4 },
         } as React.ChangeEvent<HTMLTextAreaElement>;
-        
+
         onChange(syntheticEvent);
-        
+
         // Set cursor position after the inserted variable
         setTimeout(() => {
           const newCursorPos = lastOpenBrace + variable.key.length + 4;
@@ -272,7 +286,7 @@ const PromptTextarea = React.forwardRef<HTMLTextAreaElement, PromptTextareaProps
           textarea.focus();
         }, 0);
       }
-      
+
       setShowAutocomplete(false);
     };
 
@@ -349,7 +363,7 @@ const PromptTextarea = React.forwardRef<HTMLTextAreaElement, PromptTextareaProps
     // Utility: clamp autocomplete within container and flip if near bottom
     const clampAutocompletePosition = (
       pos: { top: number; left: number },
-      containerRect: DOMRect
+      containerRect: DOMRect,
     ) => {
       // Heuristic menu size
       const menuWidth = 320;
@@ -370,11 +384,11 @@ const PromptTextarea = React.forwardRef<HTMLTextAreaElement, PromptTextareaProps
     };
 
     return (
-      <div className="w-full relative" ref={containerRef}>
+      <div className="relative w-full" ref={containerRef}>
         {label && (
-          <label 
+          <label
             htmlFor={textareaId}
-            className="block text-xs font-medium text-[color:var(--color-foreground)] mb-2 tracking-wide uppercase"
+            className="mb-2 block text-xs font-medium tracking-wide text-[color:var(--color-foreground)] uppercase"
           >
             {label}
           </label>
@@ -384,34 +398,38 @@ const PromptTextarea = React.forwardRef<HTMLTextAreaElement, PromptTextareaProps
           {enableVariableAutocomplete && (
             <div
               ref={overlayRef}
-              className={`absolute inset-0 pointer-events-none z-0 overflow-hidden`}
+              className={`pointer-events-none absolute inset-0 z-0 overflow-hidden`}
               style={{ background: 'transparent' }}
             >
               <div
                 ref={overlayContentRef}
-                className={`px-3 py-2 whitespace-pre-wrap text-sm font-mono ${getTypographyClasses(className)}`}
+                className={`px-3 py-2 font-mono text-sm whitespace-pre-wrap ${getTypographyClasses(className)}`}
                 style={{ color: 'transparent', fontKerning: 'none', fontVariantLigatures: 'none' }}
               >
                 {renderHighlightedText(typeof value === 'string' ? value : '')}
               </div>
             </div>
           )}
-          
+
           {/* Actual textarea */}
           <textarea
             id={textareaId}
-            className={`${classes} relative z-10 scrollbar-thin scrollbar-thumb-[color:var(--color-border)] scrollbar-track-transparent hover:scrollbar-thumb-[color:var(--color-accent)]/50 ${enableVariableAutocomplete ? 'bg-transparent text-transparent caret-[color:var(--color-foreground)]' : ''}`}
+            className={`${classes} scrollbar-thin scrollbar-thumb-[color:var(--color-border)] scrollbar-track-transparent hover:scrollbar-thumb-[color:var(--color-accent)]/50 relative z-10 ${enableVariableAutocomplete ? 'bg-transparent text-transparent caret-[color:var(--color-foreground)]' : ''}`}
             maxLength={maxLength}
             value={value}
             onChange={handleTextareaChange}
             onSelect={handleSelect}
             onScroll={handleScroll}
             ref={textareaRef}
-            style={{ WebkitOverflowScrolling: 'touch', fontKerning: 'none', fontVariantLigatures: 'none' }}
+            style={{
+              WebkitOverflowScrolling: 'touch',
+              fontKerning: 'none',
+              fontVariantLigatures: 'none',
+            }}
             {...props}
           />
         </div>
-        
+
         {/* Variable Autocomplete */}
         {enableVariableAutocomplete && showAutocomplete && (
           <VariableAutocomplete
@@ -421,31 +439,26 @@ const PromptTextarea = React.forwardRef<HTMLTextAreaElement, PromptTextareaProps
             onClose={handleAutocompleteClose}
           />
         )}
-        
-        <div className="flex justify-between items-center mt-1">
+
+        <div className="mt-1 flex items-center justify-between">
           <div>
-            {error && (
-              <p className="text-xs text-[color:var(--color-danger)]">
-                {error}
-              </p>
-            )}
+            {error && <p className="text-xs text-[color:var(--color-danger)]">{error}</p>}
             {hint && !error && (
-              <p className="text-xs text-[color:var(--color-muted-foreground)]">
-                {hint}
-              </p>
+              <p className="text-xs text-[color:var(--color-muted-foreground)]">{hint}</p>
             )}
           </div>
           {showCharCount && (
             <p className="text-xs text-[color:var(--color-muted-foreground)]">
-              {charCount}{maxLength && `/${maxLength}`}
+              {charCount}
+              {maxLength && `/${maxLength}`}
             </p>
           )}
         </div>
       </div>
     );
-  }
+  },
 );
 
-PromptTextarea.displayName = "PromptTextarea";
+PromptTextarea.displayName = 'PromptTextarea';
 
 export { PromptTextarea };

@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from '@/lib/prisma';
 
 export const apiKeysRepo = {
   async findActiveByUser(userId: string) {
@@ -27,4 +27,3 @@ export const apiKeysRepo = {
     return prisma.userApiKey.updateMany({ where: { userId, provider }, data: { isActive: false } });
   },
 };
-

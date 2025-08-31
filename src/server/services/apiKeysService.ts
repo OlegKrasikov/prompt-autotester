@@ -1,4 +1,4 @@
-import { apiKeysRepo } from "@/server/repos/apiKeysRepo";
+import { apiKeysRepo } from '@/server/repos/apiKeysRepo';
 
 export const apiKeysService = {
   async listActive(userId: string) {
@@ -15,4 +15,3 @@ export const apiKeysService = {
     await apiKeysRepo.deactivateByProvider(userId, provider);
   },
 };
-

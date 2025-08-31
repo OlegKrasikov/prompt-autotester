@@ -10,7 +10,8 @@ This app uses Better Auth with Prisma and Neon Postgres.
 
 ## Setup
 
-1) Env
+1. Env
+
 ```
 DATABASE_URL=postgresql://...
 BETTER_AUTH_SECRET=...
@@ -19,22 +20,26 @@ ENCRYPTION_KEY=...   # required for saving/updating API keys
 ```
 
 ### Generating ENCRYPTION_KEY
+
 We derive a 32‑byte key from `ENCRYPTION_KEY` using scrypt. Any high‑entropy value works; recommend ≥32 random bytes.
 
 Examples
+
 - macOS/Linux (hex): `openssl rand -hex 32`
 - macOS/Linux (base64): `openssl rand -base64 32`
 - Node.js: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
 - Python: `python - <<'PY'\nimport secrets; print(secrets.token_hex(32))\nPY`
 - Windows PowerShell: `powershell -Command "[Convert]::ToBase64String((New-Object byte[] 32 | %{(Get-Random -Max 256)}))"`
 
-2) Schema and DB
+2. Schema and DB
+
 ```
 npx @better-auth/cli generate --config src/lib/auth.ts --yes
 npx prisma migrate dev --name betterauth_init
 ```
 
-3) Generate client on install (configured in `package.json`):
+3. Generate client on install (configured in `package.json`):
+
 ```
 npm i
 ```
@@ -70,7 +75,7 @@ npm i
 
 ## Middleware Implementation Details
 
-**Important**: The middleware file must be located at `src/middleware.ts` for Next.js 15 with App Router. 
+**Important**: The middleware file must be located at `src/middleware.ts` for Next.js 15 with App Router.
 
 ### Authentication Check Strategy
 
@@ -83,14 +88,16 @@ The middleware uses a cookie-based authentication check:
 ### Protected Routes
 
 Currently protected routes that require authentication:
+
 - `/testing` - Prompt testing interface
 - `/scenarios` - Scenario management
-- `/variables` - Variables management  
+- `/variables` - Variables management
 - `/settings` - User settings and AI model API key configuration
 
 ### Troubleshooting
 
 If middleware isn't working:
+
 1. Ensure file is at `src/middleware.ts` (not project root)
 2. Restart development server after moving middleware
 3. Check console logs for middleware execution messages

@@ -24,7 +24,7 @@ export function useOnboarding() {
       try {
         const parsed = JSON.parse(stored);
         setOnboardingState(parsed);
-        
+
         // Show welcome dialog if user hasn't seen it
         if (!parsed.hasSeenWelcome) {
           setTimeout(() => setShowWelcomeDialog(true), 1000);
@@ -73,31 +73,31 @@ export function useOnboarding() {
   const getNextStep = () => {
     if (!onboardingState.hasCreatedPrompt) {
       return {
-        title: "Create Your First Prompt",
-        description: "Start by creating a prompt to test different AI behaviors",
-        action: "Create Prompt",
-        href: "/prompts/new"
+        title: 'Create Your First Prompt',
+        description: 'Start by creating a prompt to test different AI behaviors',
+        action: 'Create Prompt',
+        href: '/prompts/new',
       };
     }
-    
+
     if (!onboardingState.hasCreatedScenario) {
       return {
-        title: "Create a Test Scenario", 
-        description: "Define conversation flows to test your prompts against",
-        action: "Create Scenario",
-        href: "/scenarios/new"
+        title: 'Create a Test Scenario',
+        description: 'Define conversation flows to test your prompts against',
+        action: 'Create Scenario',
+        href: '/scenarios/new',
       };
     }
-    
+
     if (!onboardingState.hasRunFirstTest) {
       return {
-        title: "Run Your First Test",
-        description: "Test your prompt against scenarios to see how it performs",
-        action: "Start Testing",
-        href: "/testing"
+        title: 'Run Your First Test',
+        description: 'Test your prompt against scenarios to see how it performs',
+        action: 'Start Testing',
+        href: '/testing',
       };
     }
-    
+
     return null;
   };
 
@@ -106,11 +106,11 @@ export function useOnboarding() {
     showWelcomeDialog,
     markWelcomeSeen,
     markPromptCreated,
-    markScenarioCreated,  
+    markScenarioCreated,
     markFirstTestRun,
     isNewUser,
     needsBasicSetup,
     getNextStep,
-    setShowWelcomeDialog
+    setShowWelcomeDialog,
   };
 }

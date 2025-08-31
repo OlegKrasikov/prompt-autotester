@@ -7,10 +7,7 @@ import { UpdateScenarioSchema } from '@/server/validation/schemas';
 import { getLogger } from '@/server/logging/logger';
 import { scenariosService } from '@/server/services/scenariosService';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const user = await getCurrentUser(request);
     if (!user) {
@@ -31,10 +28,7 @@ export async function GET(
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const user = await getCurrentUser(request);
     if (!user) {
@@ -59,10 +53,7 @@ export async function PUT(
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const user = await getCurrentUser(request);
     if (!user) {
