@@ -45,9 +45,11 @@ model UserApiKey {
 - `ENCRYPTION_KEY` required in environment
 
 ### Generate ENCRYPTION_KEY
+
 Use a high‑entropy secret (≥32 random bytes). We derive the encryption key via scrypt.
 
 Quick commands
+
 - `openssl rand -hex 32`
 - `openssl rand -base64 32`
 - `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`

@@ -7,6 +7,12 @@ Shared tokens and components used across the app.
 - Defined in `src/app/globals.css` (colors, radii, shadows)
 - Use CSS custom properties via Tailwind arbitrary values (e.g., `bg-[color:var(--color-surface)]`)
 
+## Fonts
+
+- Font families are defined via CSS variables in `src/app/globals.css`:
+  - `--font-geist-sans` and `--font-geist-mono` default to system fallbacks.
+- We do not fetch Google Fonts at build/runtime to keep CI and sandbox environments network-agnostic. If desired, reintroduce `next/font` with self-hosting in a dedicated change.
+
 ## Core UI Components
 
 - `src/components/ui/Card.tsx`: Card with variants and padding options
@@ -31,4 +37,3 @@ Shared tokens and components used across the app.
 - Keep page structure consistent; prefer Card sections
 - Provide loading, error, and disabled states for actions
 - Ensure accessibility (labels, roles, focus, contrast)
-

@@ -1,26 +1,25 @@
-'use client'
+'use client';
 
-import React from "react";
-import { useRouter } from "next/navigation";
-import { authClient } from "@/lib/auth-client";
-import { ScenarioFull } from "@/lib/types";
-import ScenarioEditor from "@/components/ScenarioEditor";
+import React from 'react';
+import { useRouter } from 'next/navigation';
+import { authClient } from '@/lib/auth-client';
+import { ScenarioFull } from '@/lib/types';
+import ScenarioEditor from '@/components/ScenarioEditor';
 
-export default function EditScenarioPage({ params }: { params: { id: string } }) {
+export default function EditScenarioPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
   const [scenario, setScenario] = React.useState<ScenarioFull | null>(null);
   const [loading, setLoading] = React.useState(true);
-  const resolvedParams = params;
-
+  const resolvedParams = React.use(params);
   React.useEffect(() => {
-    if (!isPending && !session && resolvedParams) {
+    if (!isPending && !session) {
       router.replace(`/login?redirect=/scenarios/${resolvedParams.id}/edit`);
     }
   }, [isPending, session, router, resolvedParams.id]);
 
   React.useEffect(() => {
-    if (session && resolvedParams) {
+    if (session) {
       const fetchScenario = async () => {
         try {
           const response = await fetch(`/api/scenarios/${resolvedParams.id}`);
@@ -48,7 +47,7 @@ export default function EditScenarioPage({ params }: { params: { id: string } })
     <ScenarioEditor
       mode="edit"
       initialData={scenario}
-      onSave={(scenario) => {
+      onSave={() => {
         router.push('/scenarios');
       }}
       onCancel={() => router.push('/scenarios')}

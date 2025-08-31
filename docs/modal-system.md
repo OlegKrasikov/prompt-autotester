@@ -25,10 +25,9 @@ const confirm = useConfirmModal();
   title="Delete"
   message={`Delete "${confirm.itemName}"?`}
   confirmVariant="danger"
-/>
+/>;
 ```
 
 ## Accessibility
 
 - Focus management, ARIA roles/labels, ESC to close, backdrop click, keyboard navigation
-

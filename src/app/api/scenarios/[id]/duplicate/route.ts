@@ -3,12 +3,8 @@ import { serializeBigInt } from '@/lib/utils/bigint-serializer';
 import { getCurrentUser } from '@/lib/utils/auth-utils';
 import { okJson, unauthorized, notFound, serverError } from '@/server/http/responses';
 import { scenariosService } from '@/server/services/scenariosService';
-import { Prisma } from '@prisma/client';
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, { params }: any) {
   try {
     const user = await getCurrentUser(request);
     if (!user) {

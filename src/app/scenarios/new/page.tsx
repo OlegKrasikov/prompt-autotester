@@ -1,9 +1,9 @@
-'use client'
+'use client';
 
-import React from "react";
-import { useRouter } from "next/navigation";
-import { authClient } from "@/lib/auth-client";
-import ScenarioEditor from "@/components/ScenarioEditor";
+import React from 'react';
+import { useRouter } from 'next/navigation';
+import { authClient } from '@/lib/auth-client';
+import ScenarioEditor from '@/components/ScenarioEditor';
 
 export default function NewScenarioPage() {
   const router = useRouter();
@@ -11,7 +11,7 @@ export default function NewScenarioPage() {
 
   React.useEffect(() => {
     if (!isPending && !session) {
-      router.replace("/login?redirect=/scenarios/new");
+      router.replace('/login?redirect=/scenarios/new');
     }
   }, [isPending, session, router]);
 
@@ -20,7 +20,7 @@ export default function NewScenarioPage() {
   return (
     <ScenarioEditor
       mode="create"
-      onSave={(scenario) => {
+      onSave={() => {
         router.push('/scenarios');
       }}
       onCancel={() => router.push('/scenarios')}

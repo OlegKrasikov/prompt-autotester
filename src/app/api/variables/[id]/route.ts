@@ -5,58 +5,7 @@ import { UpdateVariableSchema } from '@/server/validation/schemas';
 import { okJson, unauthorized, notFound, errorJson, serverError } from '@/server/http/responses';
 import { variablesService } from '@/server/services/variablesService';
 
-// Helper function to check if a variable is used in any prompts or scenarios
-async function checkVariableUsage(variableKey: string, userId: string) {
-  const variablePattern = `{{${variableKey}}}`;
-  
-  // Check prompts
-  const promptsWithVariable = await prisma.prompt.findMany({
-    where: {
-      userId: userId,
-      content: {
-        contains: variablePattern
-      }
-    },
-    select: {
-      id: true,
-      name: true,
-      content: true
-    }
-  });
-
-  // Check scenarios - look in scenario turn userText
-  const scenarioTurnsWithVariable = await prisma.scenarioTurn.findMany({
-    where: {
-      scenario: {
-        userId: userId
-      },
-      userText: {
-        contains: variablePattern
-      }
-    },
-    include: {
-      scenario: {
-        select: {
-          id: true,
-          name: true
-        }
-      }
-    }
-  });
-
-  return {
-    prompts: promptsWithVariable,
-    scenarios: scenarioTurnsWithVariable.map(turn => turn.scenario).filter((scenario, index, self) => 
-      // Remove duplicates by id
-      index === self.findIndex(s => s.id === scenario.id)
-    )
-  };
-}
-
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, { params }: any) {
   try {
     const user = await getCurrentUser(request);
     if (!user) {
@@ -76,10 +25,7 @@ export async function GET(
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: NextRequest, { params }: any) {
   try {
     const user = await getCurrentUser(request);
     if (!user) {
@@ -99,7 +45,8 @@ export async function PUT(
     const updated = await variablesService.update(user.id, params.id, body.data);
     if (updated.error) {
       if (updated.code === 'NOT_FOUND') return notFound('Variable not found');
-      if (updated.code === 'DUPLICATE') return errorJson('Variable with this key already exists', { status: 400 });
+      if (updated.code === 'DUPLICATE')
+        return errorJson('Variable with this key already exists', { status: 400 });
       return serverError('Failed to update variable');
     }
     return okJson(serializeBigInt(updated.data));
@@ -109,10 +56,7 @@ export async function PUT(
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: NextRequest, { params }: any) {
   try {
     const user = await getCurrentUser(request);
     if (!user) {
@@ -125,7 +69,8 @@ export async function DELETE(
       if (removed.code === 'IN_USE') {
         return errorJson('Cannot delete variable because it is being used', {
           status: 400,
-          userMessage: 'This variable is currently being used and cannot be deleted. Remove it from all prompts and scenarios first.',
+          userMessage:
+            'This variable is currently being used and cannot be deleted. Remove it from all prompts and scenarios first.',
           details: removed.details,
         });
       }

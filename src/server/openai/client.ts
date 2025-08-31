@@ -1,7 +1,7 @@
-import { OpenAI } from "openai";
+import { OpenAI } from 'openai';
 
 export interface ChatMessage {
-  role: "system" | "user" | "assistant";
+  role: 'system' | 'user' | 'assistant';
   content: string;
 }
 
@@ -21,7 +21,7 @@ export async function chatCompletion(
   model: string,
   messages: ChatMessage[],
   extra: Record<string, unknown> = {},
-  opts: ChatOptions = { timeoutMs: 60_000, maxRetries: 1 }
+  opts: ChatOptions = { timeoutMs: 60_000, maxRetries: 1 },
 ): Promise<string> {
   let lastError: unknown;
   const max = Math.max(1, opts.maxRetries ?? 1);
@@ -35,9 +35,9 @@ export async function chatCompletion(
           messages: messages.map((m) => ({ role: m.role, content: m.content })),
           ...extra,
         } as any,
-        { signal: controller.signal }
+        { signal: controller.signal },
       );
-      return resp.choices?.[0]?.message?.content ?? "";
+      return resp.choices?.[0]?.message?.content ?? '';
     } catch (err: any) {
       lastError = err;
       const isAbort = err?.name === 'AbortError';

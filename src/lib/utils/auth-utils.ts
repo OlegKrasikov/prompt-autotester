@@ -6,7 +6,7 @@ export async function getCurrentUser(request: NextRequest) {
     const session = await auth.api.getSession({
       headers: request.headers,
     });
-    
+
     return session?.user || null;
   } catch (error) {
     console.error('Failed to get current user:', error);

@@ -49,4 +49,3 @@ Internal tool for managing prompts, variables, and scenarios, and testing prompt
 - SimulateResponseBody { old: Conversation; new: Conversation }
 - Scenario: status, locale, turns (USER/EXPECT), expectations
 - Prompt: id, userId, name, description?, content, status, tags, timestamps
-

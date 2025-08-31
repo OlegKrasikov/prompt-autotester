@@ -20,10 +20,10 @@ export interface AlertModalState extends ModalState {
  */
 export function useModal() {
   const [isOpen, setIsOpen] = useState(false);
-  
+
   const open = useCallback(() => setIsOpen(true), []);
   const close = useCallback(() => setIsOpen(false), []);
-  
+
   return { isOpen, open, close };
 }
 
@@ -34,25 +34,25 @@ export function useConfirmModal() {
   const [state, setState] = useState<ConfirmModalState>({
     isOpen: false,
     itemId: '',
-    itemName: ''
+    itemName: '',
   });
-  
+
   const open = useCallback((itemId: string, itemName: string) => {
     setState({
       isOpen: true,
       itemId,
-      itemName
+      itemName,
     });
   }, []);
-  
+
   const close = useCallback(() => {
     setState({
       isOpen: false,
       itemId: '',
-      itemName: ''
+      itemName: '',
     });
   }, []);
-  
+
   return { ...state, open, close };
 }
 
@@ -64,26 +64,29 @@ export function useAlertModal() {
     isOpen: false,
     title: '',
     message: '',
-    type: 'info'
+    type: 'info',
   });
-  
-  const open = useCallback((title: string, message: string, type: AlertModalState['type'] = 'info') => {
-    setState({
-      isOpen: true,
-      title,
-      message,
-      type
-    });
-  }, []);
-  
+
+  const open = useCallback(
+    (title: string, message: string, type: AlertModalState['type'] = 'info') => {
+      setState({
+        isOpen: true,
+        title,
+        message,
+        type,
+      });
+    },
+    [],
+  );
+
   const close = useCallback(() => {
     setState({
       isOpen: false,
       title: '',
       message: '',
-      type: 'info'
+      type: 'info',
     });
   }, []);
-  
+
   return { ...state, open, close };
 }

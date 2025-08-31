@@ -1,11 +1,11 @@
-import { prisma } from "@/lib/prisma";
-import { Prisma } from "@prisma/client";
+import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 
 export const promptsRepo = {
   async findManyByUser(userId: string, where: Prisma.PromptWhereInput = {}) {
     return prisma.prompt.findMany({
       where: { userId, ...where },
-      orderBy: { updatedAt: "desc" },
+      orderBy: { updatedAt: 'desc' },
     });
   },
 
@@ -29,4 +29,3 @@ export const promptsRepo = {
     return prisma.prompt.delete({ where: { id } });
   },
 };
-

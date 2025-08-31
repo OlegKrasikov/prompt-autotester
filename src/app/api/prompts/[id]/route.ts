@@ -5,10 +5,7 @@ import { UpdatePromptSchema } from '@/server/validation/schemas';
 import { okJson, unauthorized, notFound, errorJson, serverError } from '@/server/http/responses';
 import { promptsService } from '@/server/services/promptsService';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, { params }: any) {
   const resolvedParams = params;
   try {
     const user = await getCurrentUser(request);
@@ -29,10 +26,7 @@ export async function GET(
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: NextRequest, { params }: any) {
   const resolvedParams = params;
   try {
     const user = await getCurrentUser(request);
@@ -50,7 +44,8 @@ export async function PUT(
     const updated = await promptsService.update(user.id, resolvedParams.id, body.data);
     if (updated.error) {
       if (updated.code === 'NOT_FOUND') return notFound('Prompt not found');
-      if (updated.code === 'DUPLICATE') return errorJson('Prompt with this name already exists', { status: 400 });
+      if (updated.code === 'DUPLICATE')
+        return errorJson('Prompt with this name already exists', { status: 400 });
       return serverError('Failed to update prompt');
     }
     return okJson(serializeBigInt(updated.data));
@@ -60,10 +55,7 @@ export async function PUT(
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: NextRequest, { params }: any) {
   const resolvedParams = params;
   try {
     const user = await getCurrentUser(request);
