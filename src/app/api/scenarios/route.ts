@@ -22,31 +22,6 @@ export async function GET(request: NextRequest) {
       tags: searchParams.get('tags')?.split(',').filter(Boolean) || undefined,
     });
 
-    const whereClause: Record<string, unknown> = {
-      userId: user.id,
-    };
-
-    if (filters.search) {
-      whereClause.OR = [
-        { name: { contains: filters.search, mode: 'insensitive' } },
-        { id: { contains: filters.search, mode: 'insensitive' } },
-        { tags: { hasSome: [filters.search] } },
-      ];
-    }
-
-    if (filters.locale) {
-      whereClause.locale = filters.locale;
-    }
-
-    if (filters.status) {
-      whereClause.status = filters.status;
-    }
-
-    if (filters.tags && filters.tags.length > 0) {
-      // Correct Prisma array predicate
-      whereClause.tags = { hasSome: filters.tags };
-    }
-
     const scenarioList: ScenarioListItem[] = await scenariosService.list(user.id, filters);
     return okJson(serializeBigInt(scenarioList));
   } catch (error) {

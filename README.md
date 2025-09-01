@@ -20,6 +20,13 @@ Compare prompt versions across real conversation scenarios and see the differenc
 - better-auth (Email+Password enabled by default)
 - OpenAI SDK
 
+## Architecture
+
+- Controllers (Next.js API routes) parse/validate input and call services.
+- Services orchestrate business logic and return DTOs — they do not access Prisma.
+- Repositories (`src/server/repos/*Repository.ts`) encapsulate all Prisma access and transactions.
+- Lint guardrail: services cannot import `@/lib/prisma` or `@prisma/client` (enforced via ESLint `no-restricted-imports`).
+
 ## Quick Start
 
 Prerequisites
@@ -132,6 +139,7 @@ ENCRYPTION_KEY="<paste_generated_value>"
 ## Database
 
 - ORM: Prisma. Schema lives at `prisma/schema.prisma`.
+- Unique constraints: Scenarios enforce unique `(userId, name)`; services map Prisma unique errors to a `DUPLICATE` error.
 - Commands
   - Generate client: `npx prisma generate`
   - Apply schema: `npx prisma db push`
@@ -153,6 +161,11 @@ Common setup: Vercel + Neon/Postgres
 - Set `DATABASE_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `ENCRYPTION_KEY` as project env vars (never commit them).
 - Run `prisma generate` during build (handled by `postinstall`).
 - Optional: run `prisma db push` on deploy to sync schema.
+
+## Secrets & Repository Hygiene
+
+- Do not commit secrets. `.env` is git-ignored; use `.env.example` to document required variables.
+- CI uses dummy environment values; no production secrets live in the repository.
 
 ## Contributing
 

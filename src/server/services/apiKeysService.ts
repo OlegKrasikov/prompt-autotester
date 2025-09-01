@@ -1,17 +1,17 @@
-import { apiKeysRepo } from '@/server/repos/apiKeysRepo';
+import { apiKeysRepository } from '@/server/repos/apiKeysRepository';
 
 export const apiKeysService = {
   async listActive(userId: string) {
-    return apiKeysRepo.findActiveByUser(userId);
+    return apiKeysRepository.findActiveByUser(userId);
   },
   async upsertActive(userId: string, provider: string, keyName: string, encryptedKey: string) {
-    const existing = await apiKeysRepo.findAnyByUserAndProvider(userId, provider);
+    const existing = await apiKeysRepository.findAnyByUserAndProvider(userId, provider);
     if (existing) {
-      return apiKeysRepo.update(existing.id, { keyName, encryptedKey, isActive: true });
+      return apiKeysRepository.update(existing.id, { keyName, encryptedKey, isActive: true });
     }
-    return apiKeysRepo.create(userId, provider, keyName, encryptedKey);
+    return apiKeysRepository.create(userId, provider, keyName, encryptedKey);
   },
   async deactivate(userId: string, provider: string) {
-    await apiKeysRepo.deactivateByProvider(userId, provider);
+    await apiKeysRepository.deactivateByProvider(userId, provider);
   },
 };

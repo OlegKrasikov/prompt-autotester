@@ -5,7 +5,7 @@ User-owned prompts with CRUD, tagging, and status; integrated with testing.
 ## Architecture
 
 - API routes: `src/app/api/prompts/*`
-- Service/Repo: `src/server/services/promptsService.ts`, `src/server/repos/promptsRepo.ts`
+- Service/Repository: `src/server/services/promptsService.ts`, `src/server/repos/promptsRepository.ts`
 - Validation: `src/server/validation/schemas.ts`
 
 ## Model (Prisma)

@@ -6,8 +6,9 @@ This app follows a layered design:
   - Parse request, validate with Zod, call service, map to HTTP via `okJson/errorJson`.
 - Services: `src/server/services/*Service.ts`
   - Business logic, DTO mapping, cross-entity workflows, transactions.
-- Repos: `src/server/repos/*Repo.ts`
-  - Data access via Prisma; no business logic.
+- Repositories: `src/server/repos/*Repository.ts`
+  - Encapsulate all Prisma access and transactions; no business logic.
+  - Build Prisma filters from domain DTOs so services do not construct queries.
 
 ## Validation
 
@@ -34,12 +35,13 @@ This app follows a layered design:
 
 - UI/server share types via `src/lib/types.ts` and enums via `src/lib/constants/enums.ts`.
 - Services return DTOs (e.g., `PromptListItem`, `VariableListItem`, `ScenarioListItem`) — no Prisma entities leak to clients.
+- Repositories may also return DTOs where helpful (e.g., `scenariosRepository` returns `ScenarioListItem[]` and `ScenarioFull`).
 
 ## Files of Interest
 
-- Prompts: `promptsService` / `promptsRepo` used by `src/app/api/prompts/*`.
-- Variables: `variablesService` / `variablesRepo` used by `src/app/api/variables/*`.
-- Scenarios: `scenariosService` used by `src/app/api/scenarios/*` and duplicates/published routes.
+- Prompts: `promptsService` / `promptsRepository` used by `src/app/api/prompts/*`.
+- Variables: `variablesService` / `variablesRepository` used by `src/app/api/variables/*`.
+- Scenarios: `scenariosService` / `scenariosRepository` used by `src/app/api/scenarios/*` and duplicates/published routes.
 
 ## Conventions
 
@@ -53,6 +55,7 @@ This app follows a layered design:
 - Fonts are provided via CSS variables in `src/app/globals.css` (e.g., `--font-geist-sans`, `--font-geist-mono`) with system fallbacks.
 - We avoid network font fetches in CI and sandboxed environments. If you prefer Next.js `next/font`, consider self-hosting or gating by environment in a separate change.
 
-## Code Style
+## Code Style & Rules
 
 - Prettier + ESLint enforce formatting and common lint rules. See `docs/code-style.md`.
+- Services must not import Prisma directly — enforced by ESLint `no-restricted-imports` for `src/server/services/**` disallowing `@/lib/prisma` and `@prisma/client`.

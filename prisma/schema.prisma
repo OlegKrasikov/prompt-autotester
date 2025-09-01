@@ -100,6 +100,7 @@ model Scenario {
 
   @@map("scenario")
   @@index([userId, status, updatedAt], map: "idx_scenario_user_status_updated")
+  @@unique([userId, name], name: "idx_scenario_user_name_unique")
 }
 
 model ScenarioTurn {

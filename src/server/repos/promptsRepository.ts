@@ -1,10 +1,23 @@
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
+import type { PromptFilters } from '@/lib/types';
 
-export const promptsRepo = {
-  async findManyByUser(userId: string, where: Prisma.PromptWhereInput = {}) {
+export const promptsRepository = {
+  async findManyByUser(userId: string, filters: PromptFilters = {}) {
+    const where: Prisma.PromptWhereInput = { userId } as any;
+    if (filters.search) {
+      (where as any).OR = [
+        { name: { contains: filters.search, mode: 'insensitive' } },
+        { description: { contains: filters.search, mode: 'insensitive' } },
+        { content: { contains: filters.search, mode: 'insensitive' } },
+        { tags: { hasSome: [filters.search] } },
+      ];
+    }
+    if (filters.status) (where as any).status = filters.status as any;
+    if (filters.tags?.length) (where as any).tags = { hasSome: filters.tags };
+
     return prisma.prompt.findMany({
-      where: { userId, ...where },
+      where,
       orderBy: { updatedAt: 'desc' },
     });
   },
