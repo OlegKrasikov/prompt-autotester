@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma';
 
-export const apiKeysRepo = {
+export const apiKeysRepository = {
   async findActiveByUser(userId: string) {
     return prisma.userApiKey.findMany({
       where: { userId, isActive: true },

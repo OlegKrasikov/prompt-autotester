@@ -14,6 +14,7 @@ Guidance for working with this repository.
 - `docs/variables.md`: Variables system and resolution
 - `docs/testing.md`: Testing interface and simulation API
 - `docs/code-style.md`: Code style (Prettier + ESLint), editor, CI
+- `docs/architecture.md`: Layering, repository pattern, lint guardrails
 
 ## Commands
 
@@ -58,6 +59,7 @@ npm i
 - Pages: For dynamic routes on React 19, `params` may be a `Promise`. Use `React.use(params)` to unwrap when needed (see `src/app/scenarios/[id]/edit/page.tsx`).
 - API routes: The route handler context param is typed as `any` for broad Next.js compatibility.
 - Unified error shape via `src/server/http/responses.ts`.
+- Architecture guardrail: Services must not import Prisma or build Prisma queries. All DB access goes through `src/server/repos/*Repository.ts`. This is enforced by ESLint `no-restricted-imports` for `src/server/services/**` (blocking `@/lib/prisma` and `@prisma/client`).
 
 ## Core Flow
 
@@ -75,6 +77,8 @@ npm i
 - `src/lib/types.ts`: Core types (ChatMessage, Conversation, Scenario\*)
 - `src/lib/auth.ts`, `src/lib/auth-client.ts`, `src/lib/prisma.ts`
 - `middleware.ts`: Route protection
+- Repositories: `src/server/repos/*Repository.ts` (promptsRepository, variablesRepository, apiKeysRepository, scenariosRepository)
+- Services: `src/server/services/*Service.ts`
 
 ## Environment
 
@@ -83,6 +87,8 @@ DATABASE_URL=postgresql://...
 BETTER_AUTH_SECRET=...
 BETTER_AUTH_URL=http://localhost:3000
 ENCRYPTION_KEY=...   # Required for API key encryption
+
+Note: `.env` is git-ignored. Never commit real secrets. Example values live in `.env.example` only.
 ```
 
 ## Auth Notes

@@ -86,6 +86,7 @@ model Scenario {
   turns        ScenarioTurn[]
   expectations ScenarioExpectation[]
   versions     ScenarioVersion[]
+  @@unique([userId, name], name: "idx_scenario_user_name_unique")
 }
 
 model ScenarioTurn {
@@ -136,6 +137,11 @@ model UserApiKey {
 
 - Add appropriate indexes for frequent filters/sorts (userId, status, updatedAt). See `prisma/schema.prisma` for current indexes (Prompts, Scenarios, Variables, UserApiKey).
 - Prefer `_count` aggregates for list summaries (e.g., total turns) instead of loading full relations.
+
+## Uniqueness & Duplicates
+
+- Scenarios enforce a unique `(userId, name)` constraint to prevent duplicates.
+- Services translate Prisma unique violations (`P2002`) into a domain `DUPLICATE` error on create/duplicate.
 
 ## Commands
 

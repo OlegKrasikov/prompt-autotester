@@ -22,6 +22,28 @@ const eslintConfig = [
       'react/no-unescaped-entities': 'off',
     },
   },
+  {
+    files: ['src/server/services/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@prisma/client',
+              message:
+                'Services must not import Prisma directly; use repositories for all DB access.',
+            },
+            {
+              name: '@/lib/prisma',
+              message:
+                'Services must not import the Prisma client; use repositories for all DB access.',
+            },
+          ],
+        },
+      ],
+    },
+  },
   // Disable ESLint rules that conflict with Prettier formatting
   prettier,
 ];

@@ -6,7 +6,7 @@ The Variables system allows users to create reusable key-value pairs that can be
 
 - Routes: `src/app/api/variables/*` are thin controllers.
 - Service: `src/server/services/variablesService.ts` handles create/update/delete/list and usage checks.
-- Repo: `src/server/repos/variablesRepo.ts` provides Prisma access and usage discovery.
+- Repository: `src/server/repos/variablesRepository.ts` provides Prisma access and usage discovery.
 - Validation via Zod in `src/server/validation/schemas.ts`.
 
 ## 📋 Table of Contents

@@ -1,10 +1,19 @@
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
+import type { VariableFilters } from '@/lib/types';
 
-export const variablesRepo = {
-  async findManyByUser(userId: string, where: Prisma.VariableWhereInput = {}) {
+export const variablesRepository = {
+  async findManyByUser(userId: string, filters: VariableFilters = {}) {
+    const where: Prisma.VariableWhereInput = { userId } as any;
+    if (filters.search) {
+      (where as any).OR = [
+        { key: { contains: filters.search, mode: 'insensitive' } },
+        { value: { contains: filters.search, mode: 'insensitive' } },
+        { description: { contains: filters.search, mode: 'insensitive' } },
+      ];
+    }
     return prisma.variable.findMany({
-      where: { userId, ...where },
+      where,
       orderBy: { updatedAt: 'desc' },
     });
   },
