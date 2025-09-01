@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getScenarioByKey } from '@/lib/scenarios';
 import { prisma } from '@/lib/prisma';
-import { decrypt, decryptWithSecret, encrypt } from '@/server/utils/crypto';
+import { decrypt, ensureCryptoReady } from '@/server/utils/crypto';
 import { getCurrentUser } from '@/lib/utils/auth-utils';
 import { SimulateRequestSchema } from '@/server/validation/schemas';
 import { errorJson } from '@/server/http/responses';
@@ -22,7 +22,6 @@ async function getUserApiKey(userId: string): Promise<string | null> {
         isActive: true,
       },
       select: {
-        id: true,
         encryptedKey: true,
       },
     });
@@ -31,51 +30,14 @@ async function getUserApiKey(userId: string): Promise<string | null> {
       return null;
     }
 
-    // Attempt primary decryption (ENCRYPTION_KEY) if present
-    const hasPrimary = !!process.env.ENCRYPTION_KEY;
-    if (hasPrimary) {
-      try {
-        const primary = decrypt(apiKey.encryptedKey);
-        return primary;
-      } catch {
-        // fallthrough to legacy
-      }
+    // Decrypt using the primary application encryption key only
+    try {
+      const primary = decrypt(apiKey.encryptedKey);
+      return primary;
+    } catch {
+      getLogger().error('Failed to decrypt API key with ENCRYPTION_KEY');
+      return null;
     }
-
-    // Try legacy secrets for migration
-    const legacySecrets: string[] = [];
-    if (process.env.BETTER_AUTH_SECRET) legacySecrets.push(process.env.BETTER_AUTH_SECRET);
-    // Historical fallback used previously; try as last resort
-    legacySecrets.push('default-key-change-me');
-
-    for (const secret of legacySecrets) {
-      try {
-        const legacyPlain = decryptWithSecret(secret, apiKey.encryptedKey);
-
-        // If we have primary key available, rotate encryption to primary
-        if (hasPrimary) {
-          try {
-            const reEncrypted = encrypt(legacyPlain);
-            await prisma.userApiKey.update({
-              where: { id: apiKey.id as unknown as string },
-              data: { encryptedKey: reEncrypted },
-            });
-          } catch {
-            // Rotation failure should not block usage; proceed with legacyPlain
-            console.warn(
-              'API key re-encryption (rotation) failed; proceeding with legacy-decrypted key.',
-            );
-          }
-        }
-
-        return legacyPlain;
-      } catch {
-        // try next secret
-      }
-    }
-
-    // No method succeeded
-    return null;
   } catch (error) {
     getLogger().error('Failed to get API key', { error: String(error) });
     return null;
@@ -100,7 +62,7 @@ async function getScenarioById(scenarioId: string, userId: string) {
 
     return scenario;
   } catch (error) {
-    console.error('Failed to fetch scenario:', error);
+    getLogger().error('Failed to fetch scenario', { error: String(error) });
     return null;
   }
 }
@@ -124,7 +86,7 @@ async function resolveVariables(text: string, userId: string): Promise<string> {
 
     return resolvedText;
   } catch (error) {
-    console.error('Failed to resolve variables:', error);
+    getLogger().error('Failed to resolve variables', { error: String(error) });
     return text; // Return original text if variable resolution fails
   }
 }
@@ -185,7 +147,7 @@ async function* streamSimulation(
         // Yield AI response immediately
         yield { type: 'message', data: assistantMessage };
       } catch (error) {
-        console.error('OpenAI API error:', error);
+        getLogger().error('OpenAI API error', { error: String(error) });
         const errorMessage: ChatMessage = {
           role: 'assistant',
           content: '[Error: Failed to get AI response]',
@@ -224,6 +186,17 @@ async function* streamSimulation(
 
 export async function POST(req: NextRequest) {
   try {
+    // Ensure encryption key is configured; treat as server misconfiguration if missing
+    try {
+      ensureCryptoReady();
+    } catch {
+      getLogger(req).error('ENCRYPTION_KEY not configured');
+      return NextResponse.json(
+        { error: 'Server misconfigured: ENCRYPTION_KEY is missing' },
+        { status: 500 },
+      );
+    }
+
     const user = await getCurrentUser(req);
     if (!user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -253,7 +226,7 @@ export async function POST(req: NextRequest) {
     // Use modelConfig if available, fallback to legacy model parameter
     const modelConfig = body.modelConfig || { model: body.model || 'gpt-4' };
 
-    // First check if it's a predefined scenario (legacy support)
+    // First check if it's a predefined scenario (built-in scenario support)
     let scenarioTurns: ScenarioTurn[] = [];
     let scenarioName = '';
 
