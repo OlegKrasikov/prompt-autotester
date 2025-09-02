@@ -28,6 +28,11 @@ model User {
   prompts       Prompt[]
   apiKeys       UserApiKey[]
   variables     Variable[]
+  profile       UserProfile?
+  memberships   OrganizationMember[]
+  organizationsCreated Organization[] @relation("OrgCreator")
+  invitationsSent      OrganizationInvitation[] @relation("OrgInviteInviter")
+  invitationsAccepted  OrganizationInvitation[] @relation("OrgInviteAccepter")
 
   @@unique([email])
   @@map("user")
@@ -81,6 +86,7 @@ model Verification {
 model Scenario {
   id           String                 @id @default(uuid())
   userId       String                 @map("user_id")
+  orgId        String                 @map("org_id")
   name         String
   description  String?
   locale       String                 @default("en")
@@ -93,6 +99,7 @@ model Scenario {
   updatedAt    DateTime               @updatedAt @map("updated_at")
   
   user         User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization?          @relation(fields: [orgId], references: [id], onDelete: Cascade)
   turns        ScenarioTurn[]
   expectations ScenarioExpectation[]
   suiteItems   ScenarioSuiteItem[]
@@ -100,7 +107,8 @@ model Scenario {
 
   @@map("scenario")
   @@index([userId, status, updatedAt], map: "idx_scenario_user_status_updated")
-  @@unique([userId, name], name: "idx_scenario_user_name_unique")
+  @@index([orgId, status, updatedAt], map: "idx_scenario_org_status_updated")
+  @@unique([orgId, name], name: "idx_scenario_org_name_unique")
 }
 
 model ScenarioTurn {
@@ -153,6 +161,7 @@ model ScenarioVersion {
 model ScenarioSuite {
   id          String   @id @default(uuid())
   userId      String   @map("user_id")
+  orgId       String   @map("org_id")
   name        String
   description String?
   tags        String[] @default([])
@@ -160,6 +169,7 @@ model ScenarioSuite {
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   user  User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization? @relation(fields: [orgId], references: [id], onDelete: Cascade)
   items ScenarioSuiteItem[]
 
   @@map("scenario_suite")
@@ -205,6 +215,7 @@ enum ExpectationType {
 model UserApiKey {
   id        String   @id @default(uuid())
   userId    String   @map("user_id")
+  orgId     String   @map("org_id")
   provider  String   // 'openai', 'anthropic', etc.
   keyName   String   @map("key_name") // Display name for the key
   encryptedKey String @map("encrypted_key") // Encrypted API key
@@ -213,15 +224,18 @@ model UserApiKey {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization? @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, provider], name: "idx_user_provider_unique")
+  @@unique([orgId, provider], name: "idx_org_provider_unique")
   @@map("user_api_key")
   @@index([userId, isActive, provider], map: "idx_userapi_user_active_provider")
+  @@index([orgId, isActive, provider], map: "idx_userapi_org_active_provider")
 }
 
 model Prompt {
   id          String       @id @default(uuid())
   userId      String       @map("user_id")
+  orgId       String       @map("org_id")
   name        String
   description String?
   content     String       @db.Text
@@ -231,9 +245,12 @@ model Prompt {
   updatedAt   DateTime     @updatedAt @map("updated_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization? @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
   @@map("prompt")
   @@index([userId, status, updatedAt], map: "idx_prompt_user_status_updated")
+  @@index([orgId, status, updatedAt], map: "idx_prompt_org_status_updated")
+  @@unique([orgId, name], name: "idx_prompt_org_name_unique")
 }
 
 enum PromptStatus {
@@ -247,6 +264,7 @@ enum PromptStatus {
 model Variable {
   id          String   @id @default(uuid())
   userId      String   @map("user_id")
+  orgId       String   @map("org_id")
   key         String
   value       String   @db.Text
   description String?
@@ -254,8 +272,105 @@ model Variable {
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization? @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, key], name: "idx_user_variable_unique")
+  @@unique([orgId, key], name: "idx_org_variable_unique")
   @@map("variable")
   @@index([userId, updatedAt], map: "idx_variable_user_updated")
+  @@index([orgId, updatedAt], map: "idx_variable_org_updated")
+}
+
+// Multi-org models
+
+model Organization {
+  id               String                 @id @default(uuid())
+  name             String
+  slug             String                 @unique
+  createdByUserId  String                 @map("created_by_user_id")
+  createdAt        DateTime               @default(now()) @map("created_at")
+  updatedAt        DateTime               @updatedAt @map("updated_at")
+
+  creator          User                   @relation("OrgCreator", fields: [createdByUserId], references: [id], onDelete: Cascade)
+  members          OrganizationMember[]
+  invitations      OrganizationInvitation[]
+  lastActiveForProfiles UserProfile[]      @relation("LastActiveOrg")
+  scenarios        Scenario[]
+  prompts          Prompt[]
+  variables        Variable[]
+  scenarioSuites   ScenarioSuite[]
+  apiKeys          UserApiKey[]
+
+  @@map("organization")
+}
+
+model OrganizationMember {
+  orgId     String   @map("org_id")
+  userId    String   @map("user_id")
+  role      OrgRole  @default(VIEWER)
+  status    MemberStatus @default(ACTIVE)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([orgId, userId])
+  @@map("organization_member")
+  @@index([userId, role, status], map: "idx_member_user_role_status")
+}
+
+model OrganizationInvitation {
+  id              String      @id @default(uuid())
+  orgId           String      @map("org_id")
+  email           String
+  role            OrgRole     @default(VIEWER)
+  token           String      @unique
+  expiresAt       DateTime    @map("expires_at")
+  invitedByUserId String      @map("invited_by_user_id")
+  acceptedByUserId String?    @map("accepted_by_user_id")
+  status          InviteStatus @default(PENDING)
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  invitedBy    User         @relation("OrgInviteInviter", fields: [invitedByUserId], references: [id])
+  acceptedBy   User?        @relation("OrgInviteAccepter", fields: [acceptedByUserId], references: [id])
+
+  @@map("organization_invitation")
+  @@index([orgId, email, status], map: "idx_invite_org_email_status")
+}
+
+model UserProfile {
+  userId          String   @id @map("user_id")
+  lastActiveOrgId String?  @map("last_active_org_id")
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lastActiveOrg   Organization? @relation("LastActiveOrg", fields: [lastActiveOrgId], references: [id])
+
+  @@map("user_profile")
+}
+
+enum OrgRole {
+  ADMIN
+  EDITOR
+  VIEWER
+
+  @@map("org_role")
+}
+
+enum MemberStatus {
+  ACTIVE
+  INVITED
+  REMOVED
+
+  @@map("member_status")
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  REVOKED
+
+  @@map("invite_status")
 }

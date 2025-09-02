@@ -2,9 +2,17 @@
 
 import Link from 'next/link';
 import { authClient } from '@/lib/auth-client';
+import { useEffect, useState } from 'react';
+import { OrgSwitcher } from '@/components/OrgSwitcher';
 
 export default function Header() {
   const { data: session, isPending } = authClient.useSession();
+  const [orgRole, setOrgRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    const cookie = document.cookie.split('; ').find((c) => c.startsWith('pa_org_role='));
+    if (cookie) setOrgRole(decodeURIComponent(cookie.split('=')[1]));
+  }, []);
 
   return (
     <header className="border-b border-[color:var(--color-border)] bg-[color:var(--color-surface)]/80 backdrop-blur supports-[backdrop-filter]:bg-[color:var(--color-surface)]/70">
@@ -16,11 +24,16 @@ export default function Header() {
           </Link>
         </div>
         <div className="flex items-center gap-3">
+          {/* Org switcher for authenticated users */}
+          {!isPending && session ? <OrgSwitcher /> : null}
           {isPending ? (
             <span className="text-xs text-[color:var(--color-muted-foreground)]">Loading...</span>
           ) : session ? (
             <div className="flex items-center gap-2">
-              <span className="text-xs">{session.user?.email ?? session.user?.name ?? 'User'}</span>
+              <span className="text-xs">
+                {session.user?.email ?? session.user?.name ?? 'User'}
+                {orgRole ? ` · ${orgRole.toLowerCase()}` : ''}
+              </span>
               <button
                 className="rounded border border-[color:var(--color-border)] px-2 py-1 text-xs hover:bg-[color:var(--color-surface-variant)]"
                 onClick={() => authClient.signOut()}

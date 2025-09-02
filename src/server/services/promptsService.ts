@@ -5,11 +5,12 @@ import {
   UpdatePromptSchema,
 } from '@/server/validation/schemas';
 import { PromptFilters, PromptListItem, PromptStatus } from '@/lib/types';
+import type { OrgContext } from '@/server/auth/orgContext';
 
 export const promptsService = {
-  async list(userId: string, filters: PromptFilters) {
+  async list(ctx: Pick<OrgContext, 'userId' | 'activeOrgId'>, filters: PromptFilters) {
     const parsed = PromptFiltersSchema.parse(filters);
-    const prompts = await promptsRepository.findManyByUser(userId, parsed);
+    const prompts = await promptsRepository.findManyByUser(ctx.userId, parsed, ctx.activeOrgId);
     const result: PromptListItem[] = prompts.map((p) => ({
       id: p.id,
       name: p.name,
@@ -22,14 +23,18 @@ export const promptsService = {
     return result;
   },
 
-  async get(userId: string, id: string) {
-    return promptsRepository.findByIdForUser(id, userId);
+  async get(ctx: Pick<OrgContext, 'userId' | 'activeOrgId'>, id: string) {
+    return promptsRepository.findByIdForUser(id, ctx.userId, ctx.activeOrgId);
   },
 
-  async create(userId: string, body: unknown) {
+  async create(ctx: Pick<OrgContext, 'userId' | 'activeOrgId'>, body: unknown) {
     const parsed = CreatePromptSchema.parse(body);
 
-    const dupe = await promptsRepository.findByNameForUser(parsed.name, userId);
+    const dupe = await promptsRepository.findByNameForUser(
+      parsed.name,
+      ctx.userId,
+      ctx.activeOrgId,
+    );
     if (dupe) {
       return {
         error: true as const,
@@ -39,7 +44,8 @@ export const promptsService = {
     }
 
     const created = await promptsRepository.create({
-      user: { connect: { id: userId } },
+      user: { connect: { id: ctx.userId } },
+      organization: { connect: { id: ctx.activeOrgId as string } },
       name: parsed.name,
       description: parsed.description,
       content: parsed.content,
@@ -49,12 +55,16 @@ export const promptsService = {
     return { error: false as const, data: created };
   },
 
-  async update(userId: string, id: string, body: unknown) {
+  async update(ctx: Pick<OrgContext, 'userId' | 'activeOrgId'>, id: string, body: unknown) {
     const parsed = UpdatePromptSchema.parse(body);
-    const existing = await promptsRepository.findByIdForUser(id, userId);
+    const existing = await promptsRepository.findByIdForUser(id, ctx.userId, ctx.activeOrgId);
     if (!existing) return { error: true as const, code: 'NOT_FOUND', message: 'Prompt not found' };
 
-    const dupe = await promptsRepository.findByNameForUser(parsed.name, userId);
+    const dupe = await promptsRepository.findByNameForUser(
+      parsed.name,
+      ctx.userId,
+      ctx.activeOrgId,
+    );
     if (dupe && dupe.id !== id) {
       return {
         error: true as const,
@@ -73,8 +83,8 @@ export const promptsService = {
     return { error: false as const, data: updated };
   },
 
-  async remove(userId: string, id: string) {
-    const existing = await promptsRepository.findByIdForUser(id, userId);
+  async remove(ctx: Pick<OrgContext, 'userId' | 'activeOrgId'>, id: string) {
+    const existing = await promptsRepository.findByIdForUser(id, ctx.userId, ctx.activeOrgId);
     if (!existing) return { error: true as const, code: 'NOT_FOUND', message: 'Prompt not found' };
     await promptsRepository.delete(id);
     return { error: false as const };

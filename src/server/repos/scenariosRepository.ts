@@ -13,8 +13,12 @@ import type { ScenarioStatus, ScenarioTurnType, ExpectationType } from '@/lib/co
 const toJson = (obj: unknown): Prisma.InputJsonValue => obj as Prisma.InputJsonValue;
 
 export const scenariosRepository = {
-  async findManyByUser(userId: string, filters: ScenarioFilters = {}): Promise<ScenarioListItem[]> {
-    const where: any = { userId };
+  async findManyByUser(
+    userId: string,
+    filters: ScenarioFilters = {},
+    orgId?: string | null,
+  ): Promise<ScenarioListItem[]> {
+    const where: any = orgId ? { orgId } : { userId };
 
     if (filters.search) {
       where.OR = [
@@ -47,9 +51,9 @@ export const scenariosRepository = {
     }));
   },
 
-  async findPublishedByUser(userId: string): Promise<ScenarioListItem[]> {
+  async findPublishedByUser(userId: string, orgId?: string | null): Promise<ScenarioListItem[]> {
     const scenarios = await prisma.scenario.findMany({
-      where: { userId, status: 'PUBLISHED' },
+      where: orgId ? { orgId, status: 'PUBLISHED' } : { userId, status: 'PUBLISHED' },
       orderBy: { updatedAt: 'desc' },
       select: {
         id: true,
@@ -77,9 +81,16 @@ export const scenariosRepository = {
     }));
   },
 
-  async getFullForUser(userId: string, id: string): Promise<ScenarioFull | null> {
+  async getFullForUser(
+    userId: string,
+    id: string,
+    orgId?: string | null,
+  ): Promise<ScenarioFull | null> {
+    const where: any = { id };
+    if (orgId) where.orgId = orgId;
+    else where.userId = userId;
     const s = await prisma.scenario.findFirst({
-      where: { id, userId },
+      where,
       include: {
         turns: {
           include: { expectations: true },
@@ -117,15 +128,16 @@ export const scenariosRepository = {
     };
   },
 
-  async findByNameForUser(name: string, userId: string) {
-    return prisma.scenario.findFirst({ where: { name, userId } });
+  async findByNameForUser(name: string, userId: string, orgId?: string | null) {
+    return prisma.scenario.findFirst({ where: orgId ? { name, orgId } : { name, userId } });
   },
 
-  async createWithTurns(userId: string, dto: CreateScenarioRequest) {
+  async createWithTurns(userId: string, dto: CreateScenarioRequest, orgId?: string | null) {
     return prisma.$transaction(async (tx) => {
       const scenario = await tx.scenario.create({
         data: {
           userId,
+          orgId: orgId as string,
           name: dto.name,
           description: dto.description,
           locale: dto.locale || 'en',
@@ -163,10 +175,17 @@ export const scenariosRepository = {
     });
   },
 
-  async replaceWithTurns(userId: string, id: string, dto: UpdateScenarioRequest) {
+  async replaceWithTurns(
+    userId: string,
+    id: string,
+    dto: UpdateScenarioRequest,
+    orgId?: string | null,
+  ) {
     return prisma.$transaction(async (tx) => {
       // Ensure the scenario belongs to the user
-      const existing = await tx.scenario.findFirst({ where: { id, userId } });
+      const existing = await tx.scenario.findFirst({
+        where: orgId ? { id, orgId } : { id, userId },
+      });
       if (!existing) return null;
 
       await tx.scenarioTurn.deleteMany({ where: { scenarioId: id } });
@@ -211,16 +230,18 @@ export const scenariosRepository = {
     });
   },
 
-  async deleteForUser(userId: string, id: string) {
-    const existing = await prisma.scenario.findFirst({ where: { id, userId } });
+  async deleteForUser(userId: string, id: string, orgId?: string | null) {
+    const existing = await prisma.scenario.findFirst({
+      where: orgId ? { id, orgId } : { id, userId },
+    });
     if (!existing) return false;
     await prisma.scenario.delete({ where: { id } });
     return true;
   },
 
-  async duplicate(userId: string, id: string) {
+  async duplicate(userId: string, id: string, orgId?: string | null) {
     const existing = await prisma.scenario.findFirst({
-      where: { id, userId },
+      where: orgId ? { id, orgId } : { id, userId },
       include: {
         turns: { include: { expectations: true }, orderBy: { orderIndex: 'asc' } },
       },
@@ -229,7 +250,7 @@ export const scenariosRepository = {
 
     let name = `${existing.name} (Copy)`;
     let counter = 1;
-    while (await prisma.scenario.findFirst({ where: { userId, name } })) {
+    while (await prisma.scenario.findFirst({ where: orgId ? { orgId, name } : { userId, name } })) {
       counter++;
       name = `${existing.name} (Copy ${counter})`;
     }
@@ -238,6 +259,7 @@ export const scenariosRepository = {
       const scenario = await tx.scenario.create({
         data: {
           userId,
+          orgId: (orgId ?? existing.orgId) as string,
           name,
           description: existing.description ?? undefined,
           locale: existing.locale,

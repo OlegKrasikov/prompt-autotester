@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getScenarioByKey } from '@/lib/scenarios';
 import { prisma } from '@/lib/prisma';
 import { decrypt, ensureCryptoReady } from '@/server/utils/crypto';
-import { getCurrentUser } from '@/lib/utils/auth-utils';
+import { requireOrgContext } from '@/server/auth/orgContext';
 import { SimulateRequestSchema } from '@/server/validation/schemas';
 import { errorJson } from '@/server/http/responses';
 import { getLogger } from '@/server/logging/logger';
@@ -13,14 +13,12 @@ import type { ScenarioTurnType } from '@/lib/constants/enums';
 // Using centralized crypto helper for decryption
 
 // Get user's OpenAI API key
-async function getUserApiKey(userId: string): Promise<string | null> {
+async function getUserApiKey(userId: string, orgId?: string | null): Promise<string | null> {
   try {
     const apiKey = await prisma.userApiKey.findFirst({
-      where: {
-        userId,
-        provider: 'openai',
-        isActive: true,
-      },
+      where: orgId
+        ? { orgId, provider: 'openai', isActive: true }
+        : { userId, provider: 'openai', isActive: true },
       select: {
         encryptedKey: true,
       },
@@ -45,14 +43,12 @@ async function getUserApiKey(userId: string): Promise<string | null> {
 }
 
 // Fetch scenario from database
-async function getScenarioById(scenarioId: string, userId: string) {
+async function getScenarioById(scenarioId: string, userId: string, orgId?: string | null) {
   try {
     const scenario = await prisma.scenario.findFirst({
-      where: {
-        id: scenarioId,
-        userId,
-        status: 'PUBLISHED',
-      },
+      where: orgId
+        ? { id: scenarioId, orgId, status: 'PUBLISHED' }
+        : { id: scenarioId, userId, status: 'PUBLISHED' },
       include: {
         turns: {
           orderBy: { orderIndex: 'asc' },
@@ -68,13 +64,13 @@ async function getScenarioById(scenarioId: string, userId: string) {
 }
 
 // Get user's variables and resolve them in text
-async function resolveVariables(text: string, userId: string): Promise<string> {
+async function resolveVariables(
+  text: string,
+  userId: string,
+  orgId?: string | null,
+): Promise<string> {
   try {
-    const variables = await prisma.variable.findMany({
-      where: {
-        userId,
-      },
-    });
+    const variables = await prisma.variable.findMany({ where: orgId ? { orgId } : { userId } });
 
     let resolvedText = text;
 
@@ -105,11 +101,13 @@ async function* streamSimulation(
   apiKey: string,
   promptType: 'current' | 'edited',
   userId: string,
+  orgId?: string | null,
 ): AsyncGenerator<{ type: 'message' | 'complete'; data: ChatMessage | Conversation }> {
   const openai = createOpenAIClient(apiKey);
 
   // Resolve variables in system prompt
-  const resolvedSystemPrompt = await resolveVariables(systemPrompt, userId);
+  // Note: org scoping handled at call sites by passing correct userId/orgId to resolveVariables
+  const resolvedSystemPrompt = await resolveVariables(systemPrompt, userId, orgId);
 
   const messages: ChatMessage[] = [{ role: 'system', content: resolvedSystemPrompt }];
 
@@ -117,7 +115,7 @@ async function* streamSimulation(
   for (const turn of scenarioTurns) {
     if (turn.turnType === 'USER' && turn.userText) {
       // Resolve variables in user message
-      const resolvedUserText = await resolveVariables(turn.userText, userId);
+      const resolvedUserText = await resolveVariables(turn.userText, userId, orgId);
 
       // Add user message
       const userMessage: ChatMessage = { role: 'user', content: resolvedUserText };
@@ -186,6 +184,10 @@ async function* streamSimulation(
 
 export async function POST(req: NextRequest) {
   try {
+    const ctx = await requireOrgContext(req);
+    if (!ctx?.userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     // Ensure encryption key is configured; treat as server misconfiguration if missing
     try {
       ensureCryptoReady();
@@ -195,11 +197,6 @@ export async function POST(req: NextRequest) {
         { error: 'Server misconfigured: ENCRYPTION_KEY is missing' },
         { status: 500 },
       );
-    }
-
-    const user = await getCurrentUser(req);
-    if (!user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const raw = await req.json();
@@ -213,7 +210,7 @@ export async function POST(req: NextRequest) {
     const body = parsed.data as any;
 
     // Get user's OpenAI API key
-    const apiKey = await getUserApiKey(user.id);
+    const apiKey = await getUserApiKey(ctx.userId, ctx.activeOrgId);
     if (!apiKey) {
       return NextResponse.json(
         {
@@ -243,7 +240,7 @@ export async function POST(req: NextRequest) {
       scenarioName = predefinedScenario.name;
     } else {
       // Fetch scenario from database
-      const scenario = await getScenarioById(body.scenarioKey, user.id);
+      const scenario = await getScenarioById(body.scenarioKey, ctx.userId, ctx.activeOrgId);
       if (!scenario) {
         return NextResponse.json({ error: 'Scenario not found' }, { status: 400 });
       }
@@ -282,7 +279,8 @@ export async function POST(req: NextRequest) {
             modelConfig,
             apiKey,
             'current',
-            user.id,
+            ctx.userId,
+            ctx.activeOrgId,
           );
           const editedStream = streamSimulation(
             body.newPrompt,
@@ -290,7 +288,8 @@ export async function POST(req: NextRequest) {
             modelConfig,
             apiKey,
             'edited',
-            user.id,
+            ctx.userId,
+            ctx.activeOrgId,
           );
 
           const processStreams = async () => {
@@ -349,6 +348,9 @@ export async function POST(req: NextRequest) {
       },
     });
   } catch (error) {
+    if ((error as Error).message === 'ORG_REQUIRED') {
+      return NextResponse.json({ error: 'Organization required' }, { status: 403 });
+    }
     getLogger(req).error('Simulation error', { error: String(error) });
     return NextResponse.json(
       {

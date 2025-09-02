@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { authClient } from '@/lib/auth-client';
 import AppIcon from './AppIcon';
 import { Button } from './ui/Button';
+import { OrgSwitcher } from './OrgSwitcher';
 import { Spinner } from './ui/Spinner';
 
 interface NavigationItem {
@@ -183,7 +184,7 @@ export default function Sidebar() {
         </div>
       </div>
 
-      {/* User Info and Logout */}
+      {/* User Info, Org Switcher and Logout */}
       <div className="3xl:p-10 4xl:p-12 border-t border-[color:var(--color-divider)] bg-[color:var(--color-surface-1)] p-4 lg:p-6 xl:p-7 2xl:p-8">
         {isPending ? (
           <div className="flex items-center gap-2 text-[color:var(--color-muted-foreground)]">
@@ -204,6 +205,28 @@ export default function Sidebar() {
                   {session.user?.email}
                 </div>
               </div>
+            </div>
+            {/* Org switcher + new org */}
+            <div className="space-y-2">
+              <OrgSwitcher />
+              <button
+                className="w-full rounded border border-[color:var(--color-border)] px-2 py-1 text-xs hover:bg-[color:var(--color-surface-variant)]"
+                onClick={async () => {
+                  const name = window.prompt('Organization name');
+                  if (!name) return;
+                  try {
+                    const res = await fetch('/api/orgs', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name }) });
+                    if (!res.ok) return alert('Failed to create organization');
+                    const org = await res.json();
+                    await fetch(`/api/orgs/${org.id}/switch`, { method: 'POST' });
+                    window.location.reload();
+                  } catch {
+                    alert('Failed to create organization');
+                  }
+                }}
+              >
+                + New Organization
+              </button>
             </div>
             <Button
               variant="ghost"

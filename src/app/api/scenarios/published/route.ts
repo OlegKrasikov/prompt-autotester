@@ -1,17 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ScenarioListItem } from '@/lib/types';
 import { serializeBigInt } from '@/lib/utils/bigint-serializer';
-import { getCurrentUser } from '@/lib/utils/auth-utils';
+import { requireOrgContext } from '@/server/auth/orgContext';
 import { scenariosService } from '@/server/services/scenariosService';
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser(request);
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const ctx = await requireOrgContext(request);
 
-    const result: ScenarioListItem[] = await scenariosService.listPublished(user.id);
+    const result: ScenarioListItem[] = await scenariosService.listPublished(ctx);
 
     const response = NextResponse.json(serializeBigInt(result), {
       status: 200,
