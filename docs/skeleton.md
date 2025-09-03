@@ -6,8 +6,9 @@ Internal tool for managing prompts, variables, and scenarios, and testing prompt
 
 - Prompts: create/edit, tag, status (draft/published/archived), duplicate
 - Scenarios: user/expect steps with expectations, publish for testing
-- Testing: select published prompt and scenario, edit variant, stream results, optionally overwrite stored prompt
-- Settings: manage encrypted API keys
+- Orgs: personal workspace on first login; create/switch workspaces; manage members and invites (Admin)
+- Testing: select published prompt and scenario, edit variant, stream results; Admin/Editor can overwrite stored prompt; Viewer is read‑only
+- Settings: manage encrypted API keys (Admin only); all roles can read presence for Testing eligibility
 
 ## Key Routes
 
@@ -15,7 +16,7 @@ Internal tool for managing prompts, variables, and scenarios, and testing prompt
 - `/scenarios`, `/scenarios/new`, `/scenarios/[id]/edit`
 - `/testing`
 - `/variables`
-- `/settings`
+- `/settings` (Admin only)
 
 ## APIs
 

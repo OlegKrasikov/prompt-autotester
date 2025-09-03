@@ -3,8 +3,8 @@ import { Prisma } from '@prisma/client';
 import type { PromptFilters } from '@/lib/types';
 
 export const promptsRepository = {
-  async findManyByUser(userId: string, filters: PromptFilters = {}) {
-    const where: Prisma.PromptWhereInput = { userId } as any;
+  async findManyByUser(userId: string, filters: PromptFilters = {}, orgId?: string | null) {
+    const where: Prisma.PromptWhereInput = (orgId ? { orgId } : { userId }) as any;
     if (filters.search) {
       (where as any).OR = [
         { name: { contains: filters.search, mode: 'insensitive' } },
@@ -22,12 +22,12 @@ export const promptsRepository = {
     });
   },
 
-  async findByIdForUser(id: string, userId: string) {
-    return prisma.prompt.findFirst({ where: { id, userId } });
+  async findByIdForUser(id: string, userId: string, orgId?: string | null) {
+    return prisma.prompt.findFirst({ where: orgId ? { id, orgId } : { id, userId } });
   },
 
-  async findByNameForUser(name: string, userId: string) {
-    return prisma.prompt.findFirst({ where: { name, userId } });
+  async findByNameForUser(name: string, userId: string, orgId?: string | null) {
+    return prisma.prompt.findFirst({ where: orgId ? { name, orgId } : { name, userId } });
   },
 
   async create(data: Prisma.PromptCreateInput) {

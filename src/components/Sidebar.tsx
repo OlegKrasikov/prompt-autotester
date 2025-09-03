@@ -6,6 +6,10 @@ import { authClient } from '@/lib/auth-client';
 import AppIcon from './AppIcon';
 import { Button } from './ui/Button';
 import { Spinner } from './ui/Spinner';
+import { Modal, ModalContent, ModalFooter } from './ui/Modal';
+import { Input } from './ui/Input';
+import { useEffect, useRef, useState } from 'react';
+import { ConfirmationModal } from './ui/ConfirmationModal';
 
 interface NavigationItem {
   name: string;
@@ -183,7 +187,7 @@ export default function Sidebar() {
         </div>
       </div>
 
-      {/* User Info and Logout */}
+      {/* User + Org controls */}
       <div className="3xl:p-10 4xl:p-12 border-t border-[color:var(--color-divider)] bg-[color:var(--color-surface-1)] p-4 lg:p-6 xl:p-7 2xl:p-8">
         {isPending ? (
           <div className="flex items-center gap-2 text-[color:var(--color-muted-foreground)]">
@@ -191,44 +195,7 @@ export default function Sidebar() {
             <span className="text-responsive-sm">Loading user...</span>
           </div>
         ) : session ? (
-          <div className="space-y-3">
-            <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[color:var(--color-success)] text-sm font-semibold text-white">
-                {(session.user?.email?.[0] || session.user?.name?.[0] || 'U').toUpperCase()}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-medium text-[color:var(--color-foreground)]">
-                  {session.user?.name ?? 'User'}
-                </div>
-                <div className="truncate text-xs text-[color:var(--color-muted-foreground)]">
-                  {session.user?.email}
-                </div>
-              </div>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full justify-center"
-              onClick={() => authClient.signOut()}
-            >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="mr-2"
-              >
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                <polyline points="16,17 21,12 16,7" />
-                <line x1="21" x2="9" y1="12" y2="12" />
-              </svg>
-              Sign Out
-            </Button>
-          </div>
+          <SidebarUserBlock name={session.user?.name ?? 'User'} email={session.user?.email ?? ''} />
         ) : (
           <Button
             variant="primary"
@@ -240,6 +207,448 @@ export default function Sidebar() {
           </Button>
         )}
       </div>
+    </div>
+  );
+}
+
+function SidebarUserBlock({ name, email }: { name: string; email: string }) {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [renameOpen, setRenameOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [orgName, setOrgName] = useState('');
+  const [renameValue, setRenameValue] = useState('');
+  const [creating, setCreating] = useState(false);
+  const [renaming, setRenaming] = useState(false);
+  const [selectedOrgId, setSelectedOrgId] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [orgs, setOrgs] = useState<
+    Array<{ id: string; name: string; role: 'ADMIN' | 'EDITOR' | 'VIEWER'; isActive: boolean }>
+  >([]);
+  const [loadingOrgs, setLoadingOrgs] = useState(false);
+  const [activeOrgName, setActiveOrgName] = useState<string>('');
+  const [activeOrgRole, setActiveOrgRole] = useState<'ADMIN' | 'EDITOR' | 'VIEWER' | ''>('');
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const initial = (email?.[0] || name?.[0] || 'U').toUpperCase();
+
+  useEffect(() => {
+    function onDocClick(e: MouseEvent) {
+      if (!containerRef.current) return;
+      if (!containerRef.current.contains(e.target as Node)) setMenuOpen(false);
+    }
+    function onEsc(e: KeyboardEvent) {
+      if (e.key === 'Escape') setMenuOpen(false);
+    }
+    document.addEventListener('mousedown', onDocClick);
+    document.addEventListener('keydown', onEsc);
+    return () => {
+      document.removeEventListener('mousedown', onDocClick);
+      document.removeEventListener('keydown', onEsc);
+    };
+  }, []);
+
+  // Load orgs on mount to show current workspace in trigger
+  useEffect(() => {
+    (async () => {
+      try {
+        setLoadingOrgs(true);
+        const res = await fetch('/api/orgs');
+        if (!res.ok) return;
+        const data = (await res.json()) as typeof orgs;
+        setOrgs(data);
+        const active = data.find((o) => o.isActive) || data[0];
+        if (active) {
+          setActiveOrgName(active.name);
+          setActiveOrgRole(active.role);
+        }
+      } finally {
+        setLoadingOrgs(false);
+      }
+    })();
+  }, []);
+
+  // Lazy refresh orgs when opening menu if none loaded
+  useEffect(() => {
+    if (!menuOpen || orgs.length) return;
+    (async () => {
+      try {
+        setLoadingOrgs(true);
+        const res = await fetch('/api/orgs');
+        if (!res.ok) return;
+        const data = (await res.json()) as typeof orgs;
+        setOrgs(data);
+      } finally {
+        setLoadingOrgs(false);
+      }
+    })();
+  }, [menuOpen, orgs.length]);
+
+  const createOrg = async () => {
+    if (!orgName.trim()) return;
+    try {
+      setCreating(true);
+      const res = await fetch('/api/orgs', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ name: orgName.trim() }),
+      });
+      if (!res.ok) return;
+      const org = await res.json();
+      await fetch(`/api/orgs/${org.id}/switch`, { method: 'POST' });
+      window.location.reload();
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const switchOrg = async (id: string) => {
+    await fetch(`/api/orgs/${id}/switch`, { method: 'POST' });
+    window.location.reload();
+  };
+
+  return (
+    <div className="relative" ref={containerRef}>
+      {/* Trigger */}
+      <div
+        role="button"
+        tabIndex={0}
+        className="group flex w-full items-center justify-between rounded-[var(--radius)] border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 py-2 transition-colors hover:bg-[color:var(--color-surface-variant)] focus:ring-2 focus:ring-[color:var(--color-accent)]/40 focus:outline-none"
+        onClick={() => setMenuOpen((v) => !v)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setMenuOpen((v) => !v);
+          }
+        }}
+      >
+        <div className="flex items-center gap-3">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[color:var(--color-accent)] text-xs font-semibold text-[color:var(--color-surface)] shadow-[var(--shadow-sm)]">
+            {initial}
+          </div>
+          <div className="min-w-0 text-left">
+            <div className="flex items-center gap-2 text-sm font-semibold text-[color:var(--color-foreground)]">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M3 12a9 9 0 1 0 18 0 9 9 0 1 0-18 0" />
+                <path d="M3 12h18" />
+                <path d="M12 3a15.3 15.3 0 0 1 4.5 9 15.3 15.3 0 0 1-4.5 9 15.3 15.3 0 0 1-4.5-9 15.3 15.3 0 0 1 4.5-9" />
+              </svg>
+              <span className="max-w-[11rem] min-w-0 truncate transition-colors group-hover:text-[color:var(--color-accent)]">
+                {activeOrgName || 'Workspace'}
+              </span>
+              {activeOrgRole && (
+                <span className="hidden rounded-full border border-[color:var(--color-border)] px-1.5 py-0.5 text-[10px] font-medium text-[color:var(--color-muted-foreground)] sm:inline">
+                  {activeOrgRole.toLowerCase()}
+                </span>
+              )}
+            </div>
+            <div className="truncate text-xs text-[color:var(--color-muted-foreground)]">
+              {email}
+            </div>
+          </div>
+        </div>
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={`transition-transform ${menuOpen ? 'rotate-180' : ''}`}
+        >
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      </div>
+
+      {/* Menu */}
+      {menuOpen && (
+        <div className="absolute bottom-12 left-0 z-20 w-[min(20rem,calc(100vw-2rem))] origin-bottom-left rounded-[var(--radius-lg)] border border-[color:var(--color-divider)] bg-[color:var(--color-background)] p-2 shadow-[var(--shadow-lg)]">
+          <div className="px-3 pt-2 pb-2 text-sm font-semibold text-[color:var(--color-foreground)]">
+            Workspaces
+          </div>
+          <div className="max-h-64 overflow-y-auto">
+            {loadingOrgs ? (
+              <div className="flex items-center gap-2 px-3 py-2 text-xs text-[color:var(--color-muted-foreground)]">
+                <Spinner size="sm" /> Loading…
+              </div>
+            ) : (
+              orgs.map((o) => (
+                <div
+                  key={o.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => switchOrg(o.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      switchOrg(o.id);
+                    }
+                  }}
+                  className={`group flex w-full items-center justify-between rounded-[var(--radius)] px-3 py-2 text-sm transition-colors hover:bg-[color:var(--color-surface)] ${o.isActive ? 'text-[color:var(--color-accent)]' : 'text-[color:var(--color-foreground)]'}`}
+                >
+                  <span className="truncate">{o.name}</span>
+                  <span className="ml-2 flex items-center gap-2">
+                    {o.isActive ? (
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="shrink-0"
+                      >
+                        <path d="M20 6 9 17l-5-5" />
+                      </svg>
+                    ) : (
+                      <span className="text-xs text-[color:var(--color-muted-foreground)]">
+                        {o.role.toLowerCase()}
+                      </span>
+                    )}
+                    {/* Inline actions on hover for any admin-owned workspace */}
+                    {o.role === 'ADMIN' && (
+                      <span className="ml-1 hidden items-center gap-1 opacity-0 transition-all duration-150 group-hover:flex group-hover:opacity-100">
+                        <button
+                          title="Rename workspace"
+                          aria-label="Rename workspace"
+                          className="h-5 w-5 rounded-[var(--radius)] text-[color:var(--color-foreground)] transition-all hover:bg-[color:var(--color-surface)] hover:text-[color:var(--color-accent)] active:scale-95"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setSelectedOrgId(o.id);
+                            setRenameValue(o.name);
+                            setRenameOpen(true);
+                          }}
+                        >
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="mx-auto"
+                          >
+                            <path d="M12 20h9" />
+                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                          </svg>
+                        </button>
+                        <button
+                          title="Delete workspace"
+                          aria-label="Delete workspace"
+                          className="h-5 w-5 rounded-[var(--radius)] text-[color:var(--color-danger)] transition-all hover:bg-[color:var(--color-danger)]/10 active:scale-95"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setSelectedOrgId(o.id);
+                            setDeleteOpen(true);
+                          }}
+                        >
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="mx-auto"
+                          >
+                            <path d="M3 6h18" />
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                            <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                          </svg>
+                        </button>
+                      </span>
+                    )}
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="my-2 h-px w-full bg-[color:var(--color-divider)]" />
+
+          <button
+            onClick={() => setModalOpen(true)}
+            className="flex w-full items-center rounded-[var(--radius)] px-3 py-2 text-sm text-[color:var(--color-foreground)] transition-colors hover:bg-[color:var(--color-surface)]"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="mr-2"
+            >
+              <path d="M12 5v14" />
+              <path d="M5 12h14" />
+            </svg>
+            Create workspace
+          </button>
+
+          <div className="my-2 h-px w-full bg-[color:var(--color-divider)]" />
+
+          <button
+            onClick={() => authClient.signOut()}
+            className="flex w-full items-center rounded-[var(--radius)] px-3 py-2 text-sm text-[color:var(--color-foreground)] transition-colors hover:bg-[color:var(--color-surface)]"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="mr-2"
+            >
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16,17 21,12 16,7" />
+              <line x1="21" x2="9" y1="12" y2="12" />
+            </svg>
+            Log out
+          </button>
+        </div>
+      )}
+
+      {/* Create Organization Modal */}
+      <Modal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title="Create Workspace"
+        size="sm"
+      >
+        <ModalContent>
+          <div className="p-6">
+            <Input
+              label="Name"
+              placeholder="e.g. Design Team"
+              value={orgName}
+              onChange={(e) => setOrgName(e.target.value)}
+            />
+          </div>
+        </ModalContent>
+        <ModalFooter>
+          <div className="flex w-full items-center justify-end gap-2 p-4">
+            <Button variant="secondary" size="sm" onClick={() => setModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={createOrg}
+              loading={creating}
+              disabled={!orgName.trim()}
+            >
+              Create
+            </Button>
+          </div>
+        </ModalFooter>
+      </Modal>
+
+      {/* Rename Workspace Modal */}
+      <Modal
+        isOpen={renameOpen}
+        onClose={() => setRenameOpen(false)}
+        title="Rename Workspace"
+        size="sm"
+      >
+        <ModalContent>
+          <div className="p-6">
+            <Input
+              label="New name"
+              placeholder="Workspace name"
+              value={renameValue}
+              onChange={(e) => setRenameValue(e.target.value)}
+            />
+          </div>
+        </ModalContent>
+        <ModalFooter>
+          <div className="flex w-full items-center justify-end gap-2 p-4">
+            <Button variant="secondary" size="sm" onClick={() => setRenameOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              loading={renaming}
+              disabled={!renameValue.trim() || !selectedOrgId}
+              onClick={async () => {
+                if (!renameValue.trim() || !selectedOrgId) return;
+                try {
+                  setRenaming(true);
+                  const res = await fetch(`/api/orgs/${selectedOrgId}`, {
+                    method: 'PATCH',
+                    headers: { 'content-type': 'application/json' },
+                    body: JSON.stringify({ name: renameValue.trim() }),
+                  });
+                  if (res.ok) {
+                    setOrgs((prev) =>
+                      prev.map((o) =>
+                        o.id === selectedOrgId ? { ...o, name: renameValue.trim() } : o,
+                      ),
+                    );
+                    const active = orgs.find((o) => o.isActive);
+                    if (active && active.id === selectedOrgId) setActiveOrgName(renameValue.trim());
+                    setRenameOpen(false);
+                  }
+                } finally {
+                  setRenaming(false);
+                }
+              }}
+            >
+              Save
+            </Button>
+          </div>
+        </ModalFooter>
+      </Modal>
+
+      {/* Delete Workspace Confirmation */}
+      <ConfirmationModal
+        isOpen={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
+        title="Delete workspace?"
+        message="This permanently deletes the workspace and all its data. This action cannot be undone."
+        confirmText="Delete"
+        confirmVariant="danger"
+        onConfirm={async () => {
+          if (!selectedOrgId) return;
+          const res = await fetch(`/api/orgs/${selectedOrgId}`, { method: 'DELETE' });
+          if (res.ok) {
+            const data = await res.json();
+            const wasActive = orgs.find((o) => o.id === selectedOrgId)?.isActive;
+            setOrgs((prev) => prev.filter((o) => o.id !== selectedOrgId));
+            setDeleteOpen(false);
+            setMenuOpen(false);
+            if (wasActive) {
+              if (data?.nextOrgId) {
+                await fetch(`/api/orgs/${data.nextOrgId}/switch`, { method: 'POST' });
+              }
+              window.location.reload();
+            }
+          }
+        }}
+      />
     </div>
   );
 }

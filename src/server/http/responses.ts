@@ -32,3 +32,7 @@ export function notFound(message = 'Not found') {
 export function serverError(message = 'Internal server error', details?: unknown) {
   return errorJson(message, { status: 500, code: 'INTERNAL', details });
 }
+
+export function forbidden(message = 'Forbidden') {
+  return errorJson(message, { status: 403, code: 'FORBIDDEN' });
+}

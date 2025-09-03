@@ -15,7 +15,8 @@
     "prisma:studio": "prisma studio",
     "prisma:pull": "prisma db pull",
     "prisma:push": "prisma db push",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "backfill:orgs": "node scripts/backfill-orgs.mjs"
   },
   "dependencies": {
     "@prisma/client": "^6.14.0",

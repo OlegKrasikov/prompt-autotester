@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/utils/auth-utils';
+import { requireOrgContext } from '@/server/auth/orgContext';
+import { can } from '@/server/auth/rbac';
 import { getLogger } from '@/server/logging/logger';
 import { apiKeysService } from '@/server/services/apiKeysService';
 import { encrypt, ensureCryptoReady } from '@/server/utils/crypto';
@@ -7,15 +8,17 @@ import { encrypt, ensureCryptoReady } from '@/server/utils/crypto';
 // GET - Retrieve user's API keys
 export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser(request);
-    if (!user?.id) {
+    const ctx = await requireOrgContext(request);
+    if (!ctx?.userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    const apiKeys = await apiKeysService.listActive(user.id);
+    const apiKeys = await apiKeysService.listActive(ctx);
 
     return NextResponse.json({ apiKeys });
   } catch (error) {
+    if ((error as Error).message === 'ORG_REQUIRED') {
+      return NextResponse.json({ error: 'Organization required' }, { status: 403 });
+    }
     getLogger(request).error('Error fetching API keys', { error: String(error) });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
@@ -24,8 +27,8 @@ export async function GET(request: NextRequest) {
 // POST - Create or update API key
 export async function POST(request: NextRequest) {
   try {
-    const user = await getCurrentUser(request);
-    if (!user?.id) {
+    const ctx = await requireOrgContext(request);
+    if (!ctx?.userId) {
       return NextResponse.json(
         {
           error: 'Please log in to save API keys',
@@ -37,6 +40,10 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const { provider, keyName, apiKey } = body;
+
+    if (!can(ctx as any, 'settings', 'settings')) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
 
     if (!provider || !apiKey) {
       return NextResponse.json(
@@ -77,7 +84,7 @@ export async function POST(request: NextRequest) {
 
     // Check if API key already exists for this user and provider (including inactive ones)
     const result = await apiKeysService.upsertActive(
-      user.id,
+      ctx,
       provider,
       keyName || `${provider} API Key`,
       encryptedKey,
@@ -88,6 +95,9 @@ export async function POST(request: NextRequest) {
       apiKey: result,
     });
   } catch (error) {
+    if ((error as Error).message === 'ORG_REQUIRED') {
+      return NextResponse.json({ error: 'Organization required' }, { status: 403 });
+    }
     getLogger(request).error('Error saving API key', { error: String(error) });
 
     // Provide user-friendly error messages based on error type
@@ -130,8 +140,8 @@ export async function POST(request: NextRequest) {
 // DELETE - Delete API key
 export async function DELETE(request: NextRequest) {
   try {
-    const user = await getCurrentUser(request);
-    if (!user?.id) {
+    const ctx = await requireOrgContext(request);
+    if (!ctx?.userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -142,10 +152,16 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Provider is required' }, { status: 400 });
     }
 
-    await apiKeysService.deactivate(user.id, provider);
+    if (!can(ctx as any, 'settings', 'settings')) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    await apiKeysService.deactivate(ctx, provider);
 
     return NextResponse.json({ message: 'API key deleted successfully' });
   } catch (error) {
+    if ((error as Error).message === 'ORG_REQUIRED') {
+      return NextResponse.json({ error: 'Organization required' }, { status: 403 });
+    }
     getLogger(request).error('Error deleting API key', { error: String(error) });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }

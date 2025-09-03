@@ -3,8 +3,8 @@ import { Prisma } from '@prisma/client';
 import type { VariableFilters } from '@/lib/types';
 
 export const variablesRepository = {
-  async findManyByUser(userId: string, filters: VariableFilters = {}) {
-    const where: Prisma.VariableWhereInput = { userId } as any;
+  async findManyByUser(userId: string, filters: VariableFilters = {}, orgId?: string | null) {
+    const where: Prisma.VariableWhereInput = (orgId ? { orgId } : { userId }) as any;
     if (filters.search) {
       (where as any).OR = [
         { key: { contains: filters.search, mode: 'insensitive' } },
@@ -17,11 +17,11 @@ export const variablesRepository = {
       orderBy: { updatedAt: 'desc' },
     });
   },
-  async findByIdForUser(id: string, userId: string) {
-    return prisma.variable.findFirst({ where: { id, userId } });
+  async findByIdForUser(id: string, userId: string, orgId?: string | null) {
+    return prisma.variable.findFirst({ where: orgId ? { id, orgId } : { id, userId } });
   },
-  async findByKeyForUser(key: string, userId: string) {
-    return prisma.variable.findFirst({ where: { key, userId } });
+  async findByKeyForUser(key: string, userId: string, orgId?: string | null) {
+    return prisma.variable.findFirst({ where: orgId ? { key, orgId } : { key, userId } });
   },
   async create(data: Prisma.VariableCreateInput) {
     return prisma.variable.create({ data });
@@ -32,14 +32,18 @@ export const variablesRepository = {
   async delete(id: string) {
     return prisma.variable.delete({ where: { id } });
   },
-  async usage(variableKey: string, userId: string) {
+  async usage(variableKey: string, userId: string, orgId?: string | null) {
     const variablePattern = `{{${variableKey}}}`;
     const prompts = await prisma.prompt.findMany({
-      where: { userId, content: { contains: variablePattern } },
+      where: orgId
+        ? { orgId, content: { contains: variablePattern } }
+        : { userId, content: { contains: variablePattern } },
       select: { id: true, name: true },
     });
     const turns = await prisma.scenarioTurn.findMany({
-      where: { scenario: { userId }, userText: { contains: variablePattern } },
+      where: orgId
+        ? { scenario: { orgId }, userText: { contains: variablePattern } }
+        : { scenario: { userId }, userText: { contains: variablePattern } },
       include: { scenario: { select: { id: true, name: true } } },
     });
     const scenarios = turns

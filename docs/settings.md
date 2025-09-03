@@ -1,25 +1,25 @@
 # Settings
 
-Manage user configuration, primarily encrypted API keys for AI providers.
+Manage workspace configuration, primarily encrypted API keys for AI providers. The Settings page is available to Admins only; Editors/Viewers see an access‑denied state. All roles can read API key presence via the API for Testing eligibility.
 
 ## Route
 
-- Page: `/settings` (auth required)
+- Page: `/settings` (Admin only)
 - API: `/api/user/api-keys`, `/api/user/api-keys/validate`
 
 ## API Key Management (OpenAI)
 
-- Add key: validates format (`sk-...`) and via `/validate` before save
-- Encryption: AES-256-CBC via `src/server/utils/crypto.ts`; per-user isolation
-- Reactivation: soft-deleted keys can be reactivated
-- Remove: soft delete via `DELETE /api/user/api-keys?provider=openai`
+- Add key (Admin): validates format (`sk-...`) and via `/validate` before save
+- Encryption: AES-256-CBC via `src/server/utils/crypto.ts`; stored per‑org
+- Reactivation: soft‑deleted keys can be reactivated
+- Remove (Admin): soft delete via `DELETE /api/user/api-keys?provider=openai`
 
 ## API Endpoints
 
-- `GET /api/user/api-keys` → `{ apiKeys: ApiKey[] }` (metadata only)
-- `POST /api/user/api-keys` → upsert `{ provider, keyName?, apiKey }`
+- `GET /api/user/api-keys` → `{ apiKeys: ApiKey[] }` (metadata only; all roles)
+- `POST /api/user/api-keys` → upsert `{ provider, keyName?, apiKey }` (Admin)
 - `POST /api/user/api-keys/validate` → `{ valid, userMessage, testResponse? }`
-- `DELETE /api/user/api-keys?provider=<provider>` → deactivate key
+- `DELETE /api/user/api-keys?provider=<provider>` → deactivate key (Admin)
 
 ## Model
 

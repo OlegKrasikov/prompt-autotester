@@ -16,6 +16,7 @@ interface EditPromptPageProps {
 export default function EditPromptPage({ params }: EditPromptPageProps) {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
+  const [orgRole, setOrgRole] = React.useState<'ADMIN' | 'EDITOR' | 'VIEWER' | null>(null);
   const [prompt, setPrompt] = React.useState<PromptFull | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
@@ -27,6 +28,29 @@ export default function EditPromptPage({ params }: EditPromptPageProps) {
       router.replace(`/login?redirect=/prompts/${resolvedParams.id}/edit`);
     }
   }, [isPending, session, router, resolvedParams.id]);
+
+  React.useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch('/api/orgs');
+        if (res.ok) {
+          const data: Array<{
+            id: string;
+            role: 'ADMIN' | 'EDITOR' | 'VIEWER';
+            isActive: boolean;
+          }> = await res.json();
+          const active = data.find((o) => o.isActive) || data[0];
+          if (active) setOrgRole(active.role);
+          return;
+        }
+      } catch {}
+      const cookie = document.cookie.split('; ').find((c) => c.startsWith('pa_org_role='));
+      if (cookie) {
+        const role = decodeURIComponent(cookie.split('=')[1]) as any;
+        if (role === 'ADMIN' || role === 'EDITOR' || role === 'VIEWER') setOrgRole(role);
+      }
+    })();
+  }, []);
 
   const fetchPrompt = React.useCallback(async () => {
     try {
@@ -55,7 +79,7 @@ export default function EditPromptPage({ params }: EditPromptPageProps) {
     }
   }, [session, fetchPrompt]);
 
-  if (!session) return null;
+  if (!session || orgRole === 'VIEWER') return null;
 
   if (loading) {
     return (

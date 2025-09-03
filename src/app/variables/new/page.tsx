@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 export default function NewVariablePage() {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
+  const [orgRole, setOrgRole] = React.useState<'ADMIN' | 'EDITOR' | 'VIEWER' | null>(null);
   const [formData, setFormData] = React.useState<CreateVariableRequest>({
     key: '',
     value: '',
@@ -25,6 +26,35 @@ export default function NewVariablePage() {
       router.replace('/login?redirect=/variables/new');
     }
   }, [isPending, session, router]);
+
+  React.useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch('/api/orgs');
+        if (res.ok) {
+          const data: Array<{
+            id: string;
+            role: 'ADMIN' | 'EDITOR' | 'VIEWER';
+            isActive: boolean;
+          }> = await res.json();
+          const active = data.find((o) => o.isActive) || data[0];
+          if (active) setOrgRole(active.role);
+          return;
+        }
+      } catch {}
+      const cookie = document.cookie.split('; ').find((c) => c.startsWith('pa_org_role='));
+      if (cookie) {
+        const role = decodeURIComponent(cookie.split('=')[1]) as any;
+        if (role === 'ADMIN' || role === 'EDITOR' || role === 'VIEWER') setOrgRole(role);
+      }
+    })();
+  }, []);
+
+  React.useEffect(() => {
+    if (orgRole === 'VIEWER') {
+      router.replace('/variables');
+    }
+  }, [orgRole, router]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -82,7 +112,7 @@ export default function NewVariablePage() {
     router.push('/variables');
   };
 
-  if (!session) return null;
+  if (!session || orgRole === 'VIEWER') return null;
 
   return (
     <div className="min-h-screen bg-[color:var(--color-background)] p-6">

@@ -50,6 +50,12 @@ This app follows a layered design:
 - Unified error shape via `src/server/http/responses.ts`.
 - Indices added in `prisma/schema.prisma` for common list queries.
 
+## Multi‑Org & RBAC (Core)
+
+- Request context: `src/server/auth/orgContext.ts` resolves `{ userId, activeOrgId, role }` per request and auto‑creates a Personal workspace on first login.
+- Scoping: All tenantable resources (prompts, scenarios, variables, API keys) include `org_id`; services pass `ctx.activeOrgId` to repositories for filtering and writes.
+- RBAC: Centralized in `src/server/auth/rbac.ts`. Admin = full access; Editor = read/write domain resources (no settings/members); Viewer = read‑only. UI reflects these guards; server enforces on all write endpoints.
+
 ## Frontend Fonts
 
 - Fonts are provided via CSS variables in `src/app/globals.css` (e.g., `--font-geist-sans`, `--font-geist-mono`) with system fallbacks.

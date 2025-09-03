@@ -1,6 +1,6 @@
-# Variables System
+# Variables System (Org‑scoped)
 
-The Variables system allows users to create reusable key-value pairs that can be inserted into prompts and scenarios using `{{key}}` syntax. Variables are automatically resolved to their actual values during simulation, enabling consistent and maintainable prompt management.
+The Variables system allows users to create reusable key-value pairs that can be inserted into prompts and scenarios using `{{key}}` syntax. Variables are scoped to the active workspace (organization) and are automatically resolved to their actual values during simulation, enabling consistent and maintainable prompt management.
 
 ## Architecture (Updated)
 
@@ -49,7 +49,7 @@ During Testing:
 
 ---
 
-## 🗄️ Database Schema
+## 🗄️ Database Schema (excerpt)
 
 ### Variable Model
 
@@ -57,43 +57,46 @@ During Testing:
 model Variable {
   id          String   @id @default(uuid())
   userId      String   @map("user_id")
+  orgId       String   @map("org_id")
   key         String
   value       String   @db.Text
   description String?
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization? @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, key], name: "idx_user_variable_unique")
+  @@unique([orgId, key], name: "idx_org_variable_unique")
+  @@index([orgId, updatedAt], map: "idx_variable_org_updated")
   @@map("variable")
 }
 ```
 
 ### Key Features
 
-- **User Isolation**: Each user has their own variables via `userId` foreign key
-- **Unique Keys**: Combination of `userId + key` must be unique
+- **Workspace Isolation**: Variables belong to the active org via `orgId` foreign key
+- **Unique Keys**: Combination of `orgId + key` must be unique
 - **Text Storage**: Values use `@db.Text` for large content
 - **Optional Description**: Help users remember variable purpose
 - **Cascade Delete**: Variables deleted when user is deleted
 
 ---
 
-## 🔌 API Endpoints
+## 🔌 API Endpoints (Org‑scoped + RBAC)
 
 ### GET /api/variables
 
-**Purpose**: Fetch user's variables
-**Response**: Array of user's variables
+**Purpose**: Fetch active org variables
+**Response**: Array of variables in active org
 **Features**:
 
-- User isolation via middleware
-- Ordered by creation date
+- Active org scoping via middleware/context
+- Ordered by updated date
 
 ### POST /api/variables
 
-**Purpose**: Create new variable
+**Purpose**: Create new variable (Admin/Editor)
 **Body**:
 
 ```typescript
@@ -107,24 +110,24 @@ model Variable {
 **Validation**:
 
 - Key format: `/^[a-zA-Z0-9_]+$/`
-- Key uniqueness per user
+- Key uniqueness per org
 - Required fields validation
 
 ### PUT /api/variables/[id]
 
-**Purpose**: Update existing variable
+**Purpose**: Update existing variable (Admin/Editor)
 **Body**: Same as POST
 **Features**:
 
-- User ownership verification
+- Org scoping and membership verification
 - Key uniqueness validation (excluding self)
 
 ### DELETE /api/variables/[id]
 
-**Purpose**: Delete variable with usage protection
+**Purpose**: Delete variable with usage protection (Admin/Editor)
 **Features**:
 
-- **User ownership verification**: Ensures only variable owner can delete
+- **Org scoping verification**: Ensures only org members with write access can delete
 - **Usage detection**: Checks if variable is used in prompts or scenarios before deletion
 - **Protected deletion**: Returns error with usage details if variable is in use
 - **Safe deletion**: Only deletes if variable is not referenced anywhere
