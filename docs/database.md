@@ -1,6 +1,6 @@
-# Database
+# Database (Multi‑Org)
 
-We use Neon Postgres via Prisma as the ORM.
+We use Neon Postgres via Prisma as the ORM. The application is multi‑tenant: resources are scoped by organization (`org_id`) and access is controlled by RBAC.
 
 - Connection: `DATABASE_URL` (SSL required)
 - Client: `src/lib/prisma.ts` (singleton)
@@ -29,18 +29,23 @@ Added for test scenario management with user ownership:
 - `ScenarioSuite` – grouped scenarios for batch testing (user-owned)
 - `ScenarioSuiteItem` – many-to-many relationship for suites
 
-### Prompt Management Models
+### Prompt & Variable Models
 
-Added for prompt creation and testing workflows:
+Added for prompt creation and testing workflows. Both are org‑scoped:
 
-- `Prompt` – user-owned prompts with content and metadata
-- `Variable` – user-owned key-value pairs for reusable content with unique key constraints
+- `Prompt` – prompts with content and metadata (`org_id` + unique name per org)
+- `Variable` – key‑value pairs for reusable content (unique `key` per org)
 
-### User Settings Models
+### Settings Models
 
-Added for user-specific configuration:
+- `UserApiKey` – encrypted AI model API keys (scoped per org)
 
-- `UserApiKey` – encrypted AI model API keys (user-isolated)
+### Organization Models
+
+- `Organization` – workspace metadata (name, slug, created_by_user_id)
+- `OrganizationMember` – membership with `role` (ADMIN/EDITOR/VIEWER)
+- `OrganizationInvitation` – pending invites by email with expiry
+- `UserProfile` – stores `lastActiveOrgId`
 
 ### Enums
 
@@ -49,7 +54,7 @@ Added for user-specific configuration:
 - `ExpectationType` – MUST_CONTAIN | MUST_CONTAIN_ANY | MUST_NOT_CONTAIN | REGEX | SEMANTIC_ASSERT
 - `PromptStatus` – DRAFT | PUBLISHED | ARCHIVED
 
-See the current schema:
+See the current schema (excerpt):
 
 ```prisma
 // prisma/schema.prisma (excerpt)
@@ -103,6 +108,7 @@ model ScenarioTurn {
 model Prompt {
   id          String       @id @default(uuid())
   userId      String       @map("user_id")
+  orgId       String       @map("org_id")
   name        String
   description String?
   content     String       @db.Text
@@ -111,36 +117,42 @@ model Prompt {
   createdAt   DateTime     @default(now()) @map("created_at")
   updatedAt   DateTime     @updatedAt @map("updated_at")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization? @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
+  @@index([orgId, status, updatedAt], map: "idx_prompt_org_status_updated")
+  @@unique([orgId, name], name: "idx_prompt_org_name_unique")
   @@map("prompt")
 }
 
 model UserApiKey {
   id        String   @id @default(uuid())
   userId    String   @map("user_id")
-  provider  String   // 'openai', 'anthropic', etc.
+  orgId     String   @map("org_id")
+  provider  String
   keyName   String   @map("key_name")
-  encryptedKey String @map("encrypted_key") // AES-256-CBC encrypted
-  isActive  Boolean  @default(true) @map("is_active") // Soft delete
+  encryptedKey String @map("encrypted_key")
+  isActive  Boolean  @default(true) @map("is_active")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization? @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, provider], name: "idx_user_provider_unique")
+  @@index([orgId, isActive, provider], map: "idx_userapi_org_active_provider")
+  @@unique([orgId, provider], name: "idx_org_provider_unique")
   @@map("user_api_key")
 }
 ```
 
 ## Performance
 
-- Add appropriate indexes for frequent filters/sorts (userId, status, updatedAt). See `prisma/schema.prisma` for current indexes (Prompts, Scenarios, Variables, UserApiKey).
+- Add appropriate indexes for frequent filters/sorts (orgId, status, updatedAt). See `prisma/schema.prisma` for current indexes.
 - Prefer `_count` aggregates for list summaries (e.g., total turns) instead of loading full relations.
 
 ## Uniqueness & Duplicates
 
-- Scenarios enforce a unique `(userId, name)` constraint to prevent duplicates.
+- Scenarios and Prompts enforce a unique `(orgId, name)` constraint to prevent duplicates per workspace.
 - Services translate Prisma unique violations (`P2002`) into a domain `DUPLICATE` error on create/duplicate.
 
 ## Commands

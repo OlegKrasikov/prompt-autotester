@@ -31,9 +31,10 @@ The testing page (`/testing`) compares two prompt versions against a selected sc
 - Server errors: propagate OpenAI/validation errors with clear messages
 - Streaming: handle connection errors gracefully
 
-## Authentication
+## Authentication & RBAC
 
-- `/testing` is protected by middleware; unauthenticated users redirect to login
+- `/testing` is protected by middleware; unauthenticated users redirect to login.
+- All roles can run simulations. Only Admin/Editor see and can use "Update Prompt" to overwrite the stored prompt; Viewer is read‑only in Testing.
 
 ## File Structure
 

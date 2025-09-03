@@ -8,7 +8,7 @@ import ScenarioEditor from '@/components/ScenarioEditor';
 export default function NewScenarioPage() {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
-  const [orgRole, setOrgRole] = React.useState<'ADMIN'|'EDITOR'|'VIEWER'|null>(null);
+  const [orgRole, setOrgRole] = React.useState<'ADMIN' | 'EDITOR' | 'VIEWER' | null>(null);
 
   React.useEffect(() => {
     if (!isPending && !session) {
@@ -21,7 +21,11 @@ export default function NewScenarioPage() {
       try {
         const res = await fetch('/api/orgs');
         if (res.ok) {
-          const data: Array<{ id: string; role: 'ADMIN'|'EDITOR'|'VIEWER'; isActive: boolean }> = await res.json();
+          const data: Array<{
+            id: string;
+            role: 'ADMIN' | 'EDITOR' | 'VIEWER';
+            isActive: boolean;
+          }> = await res.json();
           const active = data.find((o) => o.isActive) || data[0];
           if (active) setOrgRole(active.role);
           return;

@@ -19,7 +19,7 @@ import { Spinner } from '@/components/ui/Spinner';
 export default function PromptsPage() {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
-  const [orgRole, setOrgRole] = React.useState<'ADMIN'|'EDITOR'|'VIEWER'|null>(null);
+  const [orgRole, setOrgRole] = React.useState<'ADMIN' | 'EDITOR' | 'VIEWER' | null>(null);
   const [roleLoading, setRoleLoading] = React.useState(true);
   const [prompts, setPrompts] = React.useState<PromptListItem[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -38,7 +38,11 @@ export default function PromptsPage() {
       try {
         const res = await fetch('/api/orgs');
         if (res.ok) {
-          const data: Array<{ id: string; role: 'ADMIN'|'EDITOR'|'VIEWER'; isActive: boolean }> = await res.json();
+          const data: Array<{
+            id: string;
+            role: 'ADMIN' | 'EDITOR' | 'VIEWER';
+            isActive: boolean;
+          }> = await res.json();
           const active = data.find((o) => o.isActive) || data[0];
           if (active) setOrgRole(active.role);
           return;
@@ -280,17 +284,17 @@ export default function PromptsPage() {
               <svg
                 width="16"
                 height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="mr-2"
-            >
-              <path d="M5 12h14" />
-              <path d="M12 5v14" />
-            </svg>
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="mr-2"
+              >
+                <path d="M5 12h14" />
+                <path d="M12 5v14" />
+              </svg>
               New Prompt
             </Button>
           ) : null}

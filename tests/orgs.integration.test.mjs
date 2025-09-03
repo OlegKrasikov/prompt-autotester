@@ -3,7 +3,7 @@ import { CookieJar, request, signupAndLogin } from './utils/http.mjs';
 
 const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3000';
 
-test.skip('Orgs: list/create/switch and members, invites (auto-accept)', async () => {
+test('Orgs: list/create/switch and members, invites (auto-accept)', async () => {
   const jarA = new CookieJar();
   const emailA = `admin_${Date.now()}@example.com`;
   const password = 'password123';

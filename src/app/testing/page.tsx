@@ -16,8 +16,7 @@ export default function PromptTestingPage() {
   const { data: session, isPending } = authClient.useSession();
   const scenarios = useScenarios();
   const onboarding = useOnboarding();
-  const [orgRole, setOrgRole] = React.useState<'ADMIN'|'EDITOR'|'VIEWER'|null>(null);
-  const [roleLoading, setRoleLoading] = React.useState(true);
+  const [orgRole, setOrgRole] = React.useState<'ADMIN' | 'EDITOR' | 'VIEWER' | null>(null);
 
   const [selectedPromptId, setSelectedPromptId] = React.useState<string>('');
   const [oldPrompt, setOldPrompt] = React.useState<string>(
@@ -239,7 +238,11 @@ export default function PromptTestingPage() {
       try {
         const res = await fetch('/api/orgs');
         if (res.ok) {
-          const data: Array<{ id: string; role: 'ADMIN'|'EDITOR'|'VIEWER'; isActive: boolean }> = await res.json();
+          const data: Array<{
+            id: string;
+            role: 'ADMIN' | 'EDITOR' | 'VIEWER';
+            isActive: boolean;
+          }> = await res.json();
           const active = data.find((o) => o.isActive) || data[0];
           if (active) setOrgRole(active.role);
           return;
@@ -250,7 +253,7 @@ export default function PromptTestingPage() {
         const role = decodeURIComponent(cookie.split('=')[1]) as any;
         if (role === 'ADMIN' || role === 'EDITOR' || role === 'VIEWER') setOrgRole(role);
       }
-    })().finally(() => setRoleLoading(false));
+    })();
   }, []);
 
   React.useEffect(() => {

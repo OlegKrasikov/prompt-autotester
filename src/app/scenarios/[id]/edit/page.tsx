@@ -9,7 +9,7 @@ import ScenarioEditor from '@/components/ScenarioEditor';
 export default function EditScenarioPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
-  const [orgRole, setOrgRole] = React.useState<'ADMIN'|'EDITOR'|'VIEWER'|null>(null);
+  const [orgRole, setOrgRole] = React.useState<'ADMIN' | 'EDITOR' | 'VIEWER' | null>(null);
   const [scenario, setScenario] = React.useState<ScenarioFull | null>(null);
   const [loading, setLoading] = React.useState(true);
   const resolvedParams = React.use(params);
@@ -24,7 +24,11 @@ export default function EditScenarioPage({ params }: { params: Promise<{ id: str
       try {
         const res = await fetch('/api/orgs');
         if (res.ok) {
-          const data: Array<{ id: string; role: 'ADMIN'|'EDITOR'|'VIEWER'; isActive: boolean }> = await res.json();
+          const data: Array<{
+            id: string;
+            role: 'ADMIN' | 'EDITOR' | 'VIEWER';
+            isActive: boolean;
+          }> = await res.json();
           const active = data.find((o) => o.isActive) || data[0];
           if (active) setOrgRole(active.role);
           return;

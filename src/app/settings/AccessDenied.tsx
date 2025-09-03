@@ -9,9 +9,12 @@ export default function AccessDenied() {
         icon={EmptyStateIcons.Settings}
         title="You don’t have access to Settings"
         description="Only organization admins can view and manage settings. Please contact an admin if you need access."
-        action={{ label: 'Back to Home', onClick: () => (window.location.href = '/'), variant: 'secondary' }}
+        action={{
+          label: 'Back to Home',
+          onClick: () => (window.location.href = '/'),
+          variant: 'secondary',
+        }}
       />
     </div>
   );
 }
-

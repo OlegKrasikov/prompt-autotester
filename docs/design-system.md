@@ -25,6 +25,11 @@ Shared tokens and components used across the app.
 - `src/components/ui/ConfirmationModal.tsx`: Confirm dialog
 - `src/components/ui/AlertModal.tsx`: Alert/info dialog
 
+## Patterns
+
+- Sidebar user popover menu for workspace switching and quick actions (rename/delete on hover, Admin only).
+- Inline skeletons/spinners for role‑dependent actions to avoid button flicker (e.g., Actions column while role loads).
+
 ## Hooks & Utilities
 
 - `src/hooks/useModal.ts`: `useModal`, `useConfirmModal`, `useAlertModal`

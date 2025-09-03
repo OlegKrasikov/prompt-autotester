@@ -1,6 +1,6 @@
 # Scenarios
 
-User-owned conversation flows with USER/EXPECT turns and validation rules. Published scenarios are selectable in testing.
+Org‑scoped conversation flows with USER/EXPECT turns and validation rules. Published scenarios are selectable in testing. Admin and Editor can write; Viewer is read‑only.
 
 ## Architecture
 
@@ -14,6 +14,7 @@ User-owned conversation flows with USER/EXPECT turns and validation rules. Publi
 model Scenario {
   id           String         @id @default(uuid())
   userId       String         @map("user_id")
+  orgId        String         @map("org_id")
   name         String
   description  String?
   locale       String         @default("en")
@@ -24,6 +25,8 @@ model Scenario {
   updatedAt    DateTime       @updatedAt
   turns        ScenarioTurn[]
   expectations ScenarioExpectation[]
+  @@index([orgId, status, updatedAt], map: "idx_scenario_org_status_updated")
+  @@unique([orgId, name], name: "idx_scenario_org_name_unique")
 }
 
 model ScenarioTurn {
@@ -45,15 +48,15 @@ model ScenarioExpectation {
 }
 ```
 
-## Endpoints
+## Endpoints (Org‑scoped + RBAC)
 
-- `GET/POST /api/scenarios` – list/create (owner)
-- `GET/PUT/DELETE /api/scenarios/[id]` – read/update/delete (owner)
-- `POST /api/scenarios/[id]/duplicate` – duplicate (owner)
-- `GET /api/scenarios/published` – published list for current user (testing)
+- `GET/POST /api/scenarios` – list/create (Admin/Editor)
+- `GET/PUT/DELETE /api/scenarios/[id]` – read/update/delete (Admin/Editor; read for all members)
+- `POST /api/scenarios/[id]/duplicate` – duplicate (Admin/Editor)
+- `GET /api/scenarios/published` – published list for active org
 
 ## UI
 
-- `/scenarios`: list with search/filter and actions (edit, duplicate, delete)
+- `/scenarios`: list with search/filter and actions (edit, duplicate, delete — hidden for Viewer)
 - `/scenarios/new`, `/scenarios/[id]/edit`: editor with ordered USER/EXPECT steps and expectations
 - Published scenarios appear in `ScenarioPicker` on `/testing`

@@ -5,10 +5,7 @@ import { switchActiveOrg } from '@/server/auth/orgContext';
 import { prisma } from '@/lib/prisma';
 import { setOrgCookies } from '@/server/auth/orgClaims';
 
-export async function POST(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> },
-) {
+export async function POST(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await context.params;
     const session = await auth.api.getSession({ headers: request.headers });

@@ -3,14 +3,10 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { okJson, unauthorized, forbidden, serverError, errorJson } from '@/server/http/responses';
 import { requireOrgContext } from '@/server/auth/orgContext';
-import { can } from '@/server/auth/rbac';
 
 const RenameSchema = z.object({ name: z.string().min(2).max(100) });
 
-export async function PATCH(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> },
-) {
+export async function PATCH(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await context.params;
     const ctx = await requireOrgContext(request);
@@ -39,10 +35,7 @@ export async function PATCH(
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> },
-) {
+export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await context.params;
     const ctx = await requireOrgContext(request);

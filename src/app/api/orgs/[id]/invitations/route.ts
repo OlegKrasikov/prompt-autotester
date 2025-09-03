@@ -4,10 +4,7 @@ import { okJson, unauthorized, forbidden, serverError } from '@/server/http/resp
 import { requireOrgContext } from '@/server/auth/orgContext';
 import { can } from '@/server/auth/rbac';
 
-export async function GET(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> },
-) {
+export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await context.params;
     const ctx = await requireOrgContext(request);

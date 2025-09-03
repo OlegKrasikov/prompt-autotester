@@ -3,7 +3,6 @@ import { prisma } from '@/lib/prisma';
 import { okJson, unauthorized, forbidden, errorJson, serverError } from '@/server/http/responses';
 import { requireOrgContext } from '@/server/auth/orgContext';
 import { can } from '@/server/auth/rbac';
-import { Flags } from '@/lib/featureFlags';
 import { z } from 'zod';
 
 const InviteSchema = z.object({
@@ -11,13 +10,9 @@ const InviteSchema = z.object({
   role: z.enum(['ADMIN', 'EDITOR', 'VIEWER']).default('VIEWER'),
 });
 
-export async function POST(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> },
-) {
+export async function POST(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await context.params;
-    if (!Flags.invites()) return forbidden('Invites disabled');
     const ctx = await requireOrgContext(request);
     if (ctx.activeOrgId !== id) return forbidden('Switch to the org first');
     if (!can(ctx, 'manage', 'members')) return forbidden('Admins only');
@@ -29,7 +24,9 @@ export async function POST(
     const email = body.data.email.toLowerCase();
 
     // If email already a member: idempotent success
-    const existingUser = await prisma.user.findFirst({ where: { email: { equals: email, mode: 'insensitive' } } });
+    const existingUser = await prisma.user.findFirst({
+      where: { email: { equals: email, mode: 'insensitive' } },
+    });
     if (existingUser) {
       const existingMember = await prisma.organizationMember.findUnique({
         where: { orgId_userId: { orgId: id, userId: existingUser.id } },

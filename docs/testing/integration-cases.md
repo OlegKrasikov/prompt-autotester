@@ -19,3 +19,9 @@ Middleware/Auth
 Migration
 
 - Shadow mode: personal org auto-create; idempotency; counters.
+
+Testing UI
+
+- All roles can run prompt simulations on `/testing`.
+- Viewer cannot use “Update Prompt”; Admin/Editor can.
+- API keys presence check (GET /api/user/api-keys) should succeed for any role; write endpoints restricted to Admin.

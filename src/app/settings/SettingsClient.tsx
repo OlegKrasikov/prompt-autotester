@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -209,66 +209,85 @@ export default function SettingsClient({ orgRole }: { orgRole: 'ADMIN' | 'EDITOR
               </div>
             ) : (
               <>
-            {!isAdmin && (
-              <div className="mb-4 rounded border border-[color:var(--color-warning)]/30 bg-[color:var(--color-warning)]/10 p-3 text-xs text-[color:var(--color-warning)]">
-                You have {orgRole.toLowerCase()} access. Settings are read-only.
-              </div>
-            )}
-            <p className="mb-6 text-sm text-[color:var(--color-muted-foreground)]">
-              Configure API keys for AI models used in prompt testing. Keys are encrypted and stored
-              securely.
-            </p>
-            <div className="space-y-4">
-              <Card variant="outlined">
-                <CardContent className="p-4">
-                  <div className="mb-4 flex items-center justify-between">
-                    <div>
-                      <h3 className="text-md font-medium text-[color:var(--color-foreground)]">
-                        OpenAI API Key
-                      </h3>
-                      <p className="text-xs text-[color:var(--color-muted-foreground)]">
-                        Required for GPT models (GPT-4, GPT-3.5, etc.)
-                      </p>
-                    </div>
-                    {hasOpenAIKey && (
-                      <span className="rounded-full border border-[color:var(--color-success)]/20 bg-[color:var(--color-success)]/10 px-2 py-1 text-xs text-[color:var(--color-success)]">
-                        Configured
-                      </span>
-                    )}
+                {!isAdmin && (
+                  <div className="mb-4 rounded border border-[color:var(--color-warning)]/30 bg-[color:var(--color-warning)]/10 p-3 text-xs text-[color:var(--color-warning)]">
+                    You have {orgRole.toLowerCase()} access. Settings are read-only.
                   </div>
-
-                  {hasOpenAIKey ? (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-[color:var(--color-muted-foreground)]">
-                        API key is configured and encrypted
-                      </span>
-                      {isAdmin && (
-                        <Button variant="danger" size="sm" onClick={() => deleteApiKey('openai')}>
-                          Remove
-                        </Button>
-                      )}
-                    </div>
-                  ) : (
-                    isAdmin ? (
-                      <div className="space-y-3">
-                        <Input type="password" value={openaiKey} onChange={(e) => setOpenaiKey(e.target.value)} placeholder="sk-..." label="" />
-                        <Button variant="primary" onClick={validateAndSaveOpenAIKey} disabled={saving || validating} loading={saving || validating}>
-                          {validating ? 'Validating...' : saving ? 'Saving...' : 'Validate & Save API Key'}
-                        </Button>
+                )}
+                <p className="mb-6 text-sm text-[color:var(--color-muted-foreground)]">
+                  Configure API keys for AI models used in prompt testing. Keys are encrypted and
+                  stored securely.
+                </p>
+                <div className="space-y-4">
+                  <Card variant="outlined">
+                    <CardContent className="p-4">
+                      <div className="mb-4 flex items-center justify-between">
+                        <div>
+                          <h3 className="text-md font-medium text-[color:var(--color-foreground)]">
+                            OpenAI API Key
+                          </h3>
+                          <p className="text-xs text-[color:var(--color-muted-foreground)]">
+                            Required for GPT models (GPT-4, GPT-3.5, etc.)
+                          </p>
+                        </div>
+                        {hasOpenAIKey && (
+                          <span className="rounded-full border border-[color:var(--color-success)]/20 bg-[color:var(--color-success)]/10 px-2 py-1 text-xs text-[color:var(--color-success)]">
+                            Configured
+                          </span>
+                        )}
                       </div>
-                    ) : (
-                      <span className="text-sm text-[color:var(--color-muted-foreground)]">No API key configured</span>
-                    )
-                  )}
-                </CardContent>
-              </Card>
 
-              {message && (
-                <div className="rounded border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-3 text-sm text-[color:var(--color-muted-foreground)]">
-                  {message}
+                      {hasOpenAIKey ? (
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-[color:var(--color-muted-foreground)]">
+                            API key is configured and encrypted
+                          </span>
+                          {isAdmin && (
+                            <Button
+                              variant="danger"
+                              size="sm"
+                              onClick={() => deleteApiKey('openai')}
+                            >
+                              Remove
+                            </Button>
+                          )}
+                        </div>
+                      ) : isAdmin ? (
+                        <div className="space-y-3">
+                          <Input
+                            type="password"
+                            value={openaiKey}
+                            onChange={(e) => setOpenaiKey(e.target.value)}
+                            placeholder="sk-..."
+                            label=""
+                          />
+                          <Button
+                            variant="primary"
+                            onClick={validateAndSaveOpenAIKey}
+                            disabled={saving || validating}
+                            loading={saving || validating}
+                          >
+                            {validating
+                              ? 'Validating...'
+                              : saving
+                                ? 'Saving...'
+                                : 'Validate & Save API Key'}
+                          </Button>
+                        </div>
+                      ) : (
+                        <span className="text-sm text-[color:var(--color-muted-foreground)]">
+                          No API key configured
+                        </span>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {message && (
+                    <div className="rounded border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-3 text-sm text-[color:var(--color-muted-foreground)]">
+                      {message}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
               </>
             )}
           </CardContent>
@@ -293,18 +312,36 @@ export default function SettingsClient({ orgRole }: { orgRole: 'ADMIN' | 'EDITOR
 }
 
 function OrganizationMembersSection({ readOnly }: { readOnly: boolean }) {
-  const [members, setMembers] = useState<Array<{ userId: string; name: string; email: string; role: 'ADMIN'|'EDITOR'|'VIEWER'; status: 'ACTIVE'|'INVITED'|'REMOVED' }>>([]);
-  const [invites, setInvites] = useState<Array<{ id: string; email: string; role: 'ADMIN'|'EDITOR'|'VIEWER'; expiresAt: string; status: string }>>([]);
+  const [members, setMembers] = useState<
+    Array<{
+      userId: string;
+      name: string;
+      email: string;
+      role: 'ADMIN' | 'EDITOR' | 'VIEWER';
+      status: 'ACTIVE' | 'INVITED' | 'REMOVED';
+    }>
+  >([]);
+  const [invites, setInvites] = useState<
+    Array<{
+      id: string;
+      email: string;
+      role: 'ADMIN' | 'EDITOR' | 'VIEWER';
+      expiresAt: string;
+      status: string;
+    }>
+  >([]);
   const [activeOrgId, setActiveOrgId] = useState<string | null>(null);
   const [orgLoading, setOrgLoading] = useState(true);
   const [membersLoading, setMembersLoading] = useState(false);
   const [invitesLoading, setInvitesLoading] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState<'ADMIN'|'EDITOR'|'VIEWER'>('VIEWER');
+  const [inviteRole, setInviteRole] = useState<'ADMIN' | 'EDITOR' | 'VIEWER'>('VIEWER');
   const [updatingRoleIds, setUpdatingRoleIds] = useState<Set<string>>(new Set());
   const [removingIds, setRemovingIds] = useState<Set<string>>(new Set());
-  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(
+    null,
+  );
   // current user id for self/last-admin detection
   const { data: session } = authClient.useSession();
   const currentUserId = (session?.user?.id as string | undefined) || undefined;
@@ -314,7 +351,11 @@ function OrganizationMembersSection({ readOnly }: { readOnly: boolean }) {
       try {
         const orgsRes = await fetch('/api/orgs');
         if (!orgsRes.ok) return setOrgLoading(false);
-        const orgs = (await orgsRes.json()) as Array<{ id: string; isActive: boolean; role: string }>;
+        const orgs = (await orgsRes.json()) as Array<{
+          id: string;
+          isActive: boolean;
+          role: string;
+        }>;
         const active = orgs.find((o) => o.isActive) || orgs[0];
         if (!active) return setOrgLoading(false);
         setActiveOrgId(active.id);
@@ -348,7 +389,9 @@ function OrganizationMembersSection({ readOnly }: { readOnly: boolean }) {
               <span className="text-sm">Loading organization…</span>
             </div>
           ) : (
-            <div className="text-sm text-[color:var(--color-muted-foreground)]">No active organization</div>
+            <div className="text-sm text-[color:var(--color-muted-foreground)]">
+              No active organization
+            </div>
           )}
         </CardContent>
       </Card>
@@ -357,260 +400,330 @@ function OrganizationMembersSection({ readOnly }: { readOnly: boolean }) {
 
   return (
     <>
-    <Card variant="elevated">
-      <CardHeader>
-        <CardTitle>
-          <span className="flex items-center gap-2">
-            {/* Organization icon */}
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-[color:var(--color-foreground)]"
+      <Card variant="elevated">
+        <CardHeader>
+          <CardTitle>
+            <span className="flex items-center gap-2">
+              {/* Organization icon */}
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-[color:var(--color-foreground)]"
+              >
+                {/* Building + users hybrid icon */}
+                <rect x="3" y="3" width="8" height="12" rx="1" />
+                <path d="M7 7h2M7 10h2M7 13h2" />
+                <path d="M14 14a3 3 0 1 1 6 0" />
+                <circle cx="17" cy="10" r="2" />
+                <path d="M2 21h20" />
+              </svg>
+              Organization Members & Invites
+            </span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {feedback && (
+            <div
+              className={`mb-3 rounded border p-2 text-xs ${
+                feedback.type === 'success'
+                  ? 'border-[color:var(--color-success)]/30 bg-[color:var(--color-success)]/10 text-[color:var(--color-success)]'
+                  : 'border-[color:var(--color-danger)]/30 bg-[color:var(--color-danger)]/10 text-[color:var(--color-danger)]'
+              }`}
             >
-              {/* Building + users hybrid icon */}
-              <rect x="3" y="3" width="8" height="12" rx="1" />
-              <path d="M7 7h2M7 10h2M7 13h2" />
-              <path d="M14 14a3 3 0 1 1 6 0" />
-              <circle cx="17" cy="10" r="2" />
-              <path d="M2 21h20" />
-            </svg>
-            Organization Members & Invites
-          </span>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {feedback && (
-          <div
-            className={`mb-3 rounded border p-2 text-xs ${
-              feedback.type === 'success'
-                ? 'border-[color:var(--color-success)]/30 bg-[color:var(--color-success)]/10 text-[color:var(--color-success)]'
-                : 'border-[color:var(--color-danger)]/30 bg-[color:var(--color-danger)]/10 text-[color:var(--color-danger)]'
-            }`}
-          >
-            {feedback.message}
-          </div>
-        )}
-        {membersLoading && invitesLoading ? (
-          <div className="flex items-center gap-3 py-4 text-[color:var(--color-muted-foreground)]">
-            <Spinner size="sm" />
-            <span className="text-sm">Loading organization…</span>
-          </div>
-        ) : (
-          <>
-        {!readOnly && (
-          <div className="mb-3 text-right">
-            <Button variant="primary" size="sm" onClick={() => setInviteOpen(true)}>
-              Invite Member
-            </Button>
-          </div>
-        )}
-        <div className="grid grid-cols-12 gap-3 border-b border-[color:var(--color-border)] pb-2 text-xs uppercase text-[color:var(--color-muted-foreground)]">
-          <div className="col-span-5">Name</div>
-          <div className="col-span-4">Email</div>
-          <div className="col-span-2">Role</div>
-          <div className="col-span-1">Actions</div>
-        </div>
-        {membersLoading ? (
-          <div className="flex items-center gap-3 py-4 text-[color:var(--color-muted-foreground)]">
-            <Spinner size="sm" />
-            <span className="text-sm">Loading members…</span>
-          </div>
-        ) : members.map((m) => {
-            const adminCount = members.filter((x) => x.role === 'ADMIN').length;
-            const isSelf = currentUserId && m.userId === currentUserId;
-            const isLastAdminSelf = isSelf && m.role === 'ADMIN' && adminCount <= 1;
-            return (
-          <div key={m.userId} className="grid grid-cols-12 items-center gap-3 border-b border-[color:var(--color-border)] py-2 text-sm">
-            <div className="col-span-5">{m.name || '—'}</div>
-            <div className="col-span-4">{m.email}</div>
-            <div className="col-span-2">
-              {readOnly ? (
-                <span className="text-[color:var(--color-muted-foreground)]">{m.role.toLowerCase()}</span>
-              ) : (
-                <select
-                  className="rounded border border-[color:var(--color-border)] px-2 py-1 text-xs disabled:opacity-60"
-                  value={m.role}
-                  disabled={updatingRoleIds.has(m.userId) || isLastAdminSelf}
-                  onChange={async (e) => {
-                    const nextRole = e.target.value as 'ADMIN' | 'EDITOR' | 'VIEWER';
-                    if (isLastAdminSelf) {
-                      setFeedback({ type: 'error', message: 'Cannot change role: you are the last admin' });
-                      setTimeout(() => setFeedback(null), 2500);
-                      return;
-                    }
-                    // optimistic UI with loading state per row
-                    setUpdatingRoleIds((prev) => new Set(prev).add(m.userId));
-                    try {
-                      const res = await fetch(`/api/orgs/${activeOrgId}/members/${m.userId}`, {
-                        method: 'PATCH',
-                        headers: { 'content-type': 'application/json' },
-                        body: JSON.stringify({ role: nextRole }),
-                      });
-                      if (res.ok) {
-                        setMembers((prev) => prev.map((x) => (x.userId === m.userId ? { ...x, role: nextRole } : x)));
-                        setFeedback({ type: 'success', message: 'Member role updated' });
-                      } else {
-                        let msg = 'Failed to update role';
-                        try {
-                          const data = await res.json();
-                          msg = data?.error?.message || msg;
-                        } catch {}
-                        setFeedback({ type: 'error', message: msg });
-                      }
-                    } catch {
-                      setFeedback({ type: 'error', message: 'Failed to update role' });
-                    } finally {
-                      setUpdatingRoleIds((prev) => {
-                        const next = new Set(prev);
-                        next.delete(m.userId);
-                        return next;
-                      });
-                      // auto-dismiss feedback after a short delay
-                      setTimeout(() => setFeedback(null), 2500);
-                    }
-                  }}
-                >
-                  <option value="ADMIN">Admin</option>
-                  <option value="EDITOR">Editor</option>
-                  <option value="VIEWER">Viewer</option>
-                </select>
-              )}
+              {feedback.message}
             </div>
-            <div className="col-span-1 text-right">
+          )}
+          {membersLoading && invitesLoading ? (
+            <div className="flex items-center gap-3 py-4 text-[color:var(--color-muted-foreground)]">
+              <Spinner size="sm" />
+              <span className="text-sm">Loading organization…</span>
+            </div>
+          ) : (
+            <>
               {!readOnly && (
-                <Button
-                  variant="danger"
-                  size="sm"
-                  disabled={removingIds.has(m.userId) || isLastAdminSelf}
-                  onClick={async () => {
-                    if (isLastAdminSelf) {
-                      setFeedback({ type: 'error', message: 'Cannot remove the last Admin' });
-                      setTimeout(() => setFeedback(null), 2500);
-                      return;
-                    }
-                    setRemovingIds((prev) => new Set(prev).add(m.userId));
-                    try {
-                      const res = await fetch(`/api/orgs/${activeOrgId}/members/${m.userId}`, { method: 'DELETE' });
-                      if (res.ok) {
-                        setMembers((prev) => prev.filter((x) => x.userId !== m.userId));
-                        setFeedback({ type: 'success', message: 'Member removed' });
-                      } else {
-                        let msg = 'Failed to remove member';
-                        try {
-                          const data = await res.json();
-                          msg = data?.error?.message || msg;
-                        } catch {}
-                        setFeedback({ type: 'error', message: msg });
-                      }
-                    } catch {
-                      setFeedback({ type: 'error', message: 'Failed to remove member' });
-                    } finally {
-                      setRemovingIds((prev) => {
-                        const next = new Set(prev);
-                        next.delete(m.userId);
-                        return next;
-                      });
-                      setTimeout(() => setFeedback(null), 2500);
-                    }
-                  }}
-                >
-                  {removingIds.has(m.userId) ? 'Removing…' : 'Remove'}
-                </Button>
+                <div className="mb-3 text-right">
+                  <Button variant="primary" size="sm" onClick={() => setInviteOpen(true)}>
+                    Invite Member
+                  </Button>
+                </div>
               )}
-            </div>
-          </div>
-        );
-        })}
-
-        {(invitesLoading || invites.length > 0) && (
-          <div className="mt-6">
-            <div className="mb-2 text-xs uppercase text-[color:var(--color-muted-foreground)]">Pending Invites</div>
-            <div className="grid grid-cols-12 gap-3 border-b border-[color:var(--color-border)] pb-2 text-xs uppercase text-[color:var(--color-muted-foreground)]">
-              <div className="col-span-6">Email</div>
-              <div className="col-span-3">Role</div>
-              <div className="col-span-2">Expires</div>
-              <div className="col-span-1">Actions</div>
-            </div>
-            {invitesLoading ? (
-              <div className="flex items-center gap-3 py-4 text-[color:var(--color-muted-foreground)]">
-                <Spinner size="sm" />
-                <span className="text-sm">Loading invites…</span>
+              <div className="grid grid-cols-12 gap-3 border-b border-[color:var(--color-border)] pb-2 text-xs text-[color:var(--color-muted-foreground)] uppercase">
+                <div className="col-span-5">Name</div>
+                <div className="col-span-4">Email</div>
+                <div className="col-span-2">Role</div>
+                <div className="col-span-1">Actions</div>
               </div>
-            ) : invites.map((iv) => (
-              <div key={iv.id} className="grid grid-cols-12 items-center gap-3 border-b border-[color:var(--color-border)] py-2 text-sm">
-                <div className="col-span-6">{iv.email}</div>
-                <div className="col-span-3">{iv.role.toLowerCase()}</div>
-                <div className="col-span-2">{new Date(iv.expiresAt).toLocaleDateString()}</div>
-                <div className="col-span-1 text-right">
-                  {!readOnly && (
-                    <div className="flex items-center justify-end gap-2">
-                      <Button variant="secondary" size="sm" onClick={async () => { await fetch(`/api/orgs/${activeOrgId}/invitations/${iv.id}/resend`, { method: 'POST' }); }}>
-                        Resend
-                      </Button>
-                      <Button variant="danger" size="sm" onClick={async () => { await fetch(`/api/orgs/${activeOrgId}/invitations/${iv.id}`, { method: 'DELETE' }); setInvites((prev) => prev.filter((x) => x.id !== iv.id)); }}>
-                        Revoke
-                      </Button>
+              {membersLoading ? (
+                <div className="flex items-center gap-3 py-4 text-[color:var(--color-muted-foreground)]">
+                  <Spinner size="sm" />
+                  <span className="text-sm">Loading members…</span>
+                </div>
+              ) : (
+                members.map((m) => {
+                  const adminCount = members.filter((x) => x.role === 'ADMIN').length;
+                  const isSelf = !!currentUserId && m.userId === currentUserId;
+                  const isLastAdminSelf = isSelf && m.role === 'ADMIN' && adminCount <= 1;
+                  return (
+                    <div
+                      key={m.userId}
+                      className="grid grid-cols-12 items-center gap-3 border-b border-[color:var(--color-border)] py-2 text-sm"
+                    >
+                      <div className="col-span-5">{m.name || '—'}</div>
+                      <div className="col-span-4">{m.email}</div>
+                      <div className="col-span-2">
+                        {readOnly ? (
+                          <span className="text-[color:var(--color-muted-foreground)]">
+                            {m.role.toLowerCase()}
+                          </span>
+                        ) : (
+                          <select
+                            className="rounded border border-[color:var(--color-border)] px-2 py-1 text-xs disabled:opacity-60"
+                            value={m.role}
+                            disabled={updatingRoleIds.has(m.userId) || isLastAdminSelf}
+                            onChange={async (e) => {
+                              const nextRole = e.target.value as 'ADMIN' | 'EDITOR' | 'VIEWER';
+                              if (isLastAdminSelf) {
+                                setFeedback({
+                                  type: 'error',
+                                  message: 'Cannot change role: you are the last admin',
+                                });
+                                setTimeout(() => setFeedback(null), 2500);
+                                return;
+                              }
+                              // optimistic UI with loading state per row
+                              setUpdatingRoleIds((prev) => new Set(prev).add(m.userId));
+                              try {
+                                const res = await fetch(
+                                  `/api/orgs/${activeOrgId}/members/${m.userId}`,
+                                  {
+                                    method: 'PATCH',
+                                    headers: { 'content-type': 'application/json' },
+                                    body: JSON.stringify({ role: nextRole }),
+                                  },
+                                );
+                                if (res.ok) {
+                                  setMembers((prev) =>
+                                    prev.map((x) =>
+                                      x.userId === m.userId ? { ...x, role: nextRole } : x,
+                                    ),
+                                  );
+                                  setFeedback({ type: 'success', message: 'Member role updated' });
+                                } else {
+                                  let msg = 'Failed to update role';
+                                  try {
+                                    const data = await res.json();
+                                    msg = data?.error?.message || msg;
+                                  } catch {}
+                                  setFeedback({ type: 'error', message: msg });
+                                }
+                              } catch {
+                                setFeedback({ type: 'error', message: 'Failed to update role' });
+                              } finally {
+                                setUpdatingRoleIds((prev) => {
+                                  const next = new Set(prev);
+                                  next.delete(m.userId);
+                                  return next;
+                                });
+                                // auto-dismiss feedback after a short delay
+                                setTimeout(() => setFeedback(null), 2500);
+                              }
+                            }}
+                          >
+                            <option value="ADMIN">Admin</option>
+                            <option value="EDITOR">Editor</option>
+                            <option value="VIEWER">Viewer</option>
+                          </select>
+                        )}
+                      </div>
+                      <div className="col-span-1 text-right">
+                        {!readOnly && (
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            disabled={removingIds.has(m.userId) || isLastAdminSelf}
+                            onClick={async () => {
+                              if (isLastAdminSelf) {
+                                setFeedback({
+                                  type: 'error',
+                                  message: 'Cannot remove the last Admin',
+                                });
+                                setTimeout(() => setFeedback(null), 2500);
+                                return;
+                              }
+                              setRemovingIds((prev) => new Set(prev).add(m.userId));
+                              try {
+                                const res = await fetch(
+                                  `/api/orgs/${activeOrgId}/members/${m.userId}`,
+                                  { method: 'DELETE' },
+                                );
+                                if (res.ok) {
+                                  setMembers((prev) => prev.filter((x) => x.userId !== m.userId));
+                                  setFeedback({ type: 'success', message: 'Member removed' });
+                                } else {
+                                  let msg = 'Failed to remove member';
+                                  try {
+                                    const data = await res.json();
+                                    msg = data?.error?.message || msg;
+                                  } catch {}
+                                  setFeedback({ type: 'error', message: msg });
+                                }
+                              } catch {
+                                setFeedback({ type: 'error', message: 'Failed to remove member' });
+                              } finally {
+                                setRemovingIds((prev) => {
+                                  const next = new Set(prev);
+                                  next.delete(m.userId);
+                                  return next;
+                                });
+                                setTimeout(() => setFeedback(null), 2500);
+                              }
+                            }}
+                          >
+                            {removingIds.has(m.userId) ? 'Removing…' : 'Remove'}
+                          </Button>
+                        )}
+                      </div>
                     </div>
+                  );
+                })
+              )}
+
+              {(invitesLoading || invites.length > 0) && (
+                <div className="mt-6">
+                  <div className="mb-2 text-xs text-[color:var(--color-muted-foreground)] uppercase">
+                    Pending Invites
+                  </div>
+                  <div className="grid grid-cols-12 gap-3 border-b border-[color:var(--color-border)] pb-2 text-xs text-[color:var(--color-muted-foreground)] uppercase">
+                    <div className="col-span-6">Email</div>
+                    <div className="col-span-3">Role</div>
+                    <div className="col-span-2">Expires</div>
+                    <div className="col-span-1">Actions</div>
+                  </div>
+                  {invitesLoading ? (
+                    <div className="flex items-center gap-3 py-4 text-[color:var(--color-muted-foreground)]">
+                      <Spinner size="sm" />
+                      <span className="text-sm">Loading invites…</span>
+                    </div>
+                  ) : (
+                    invites.map((iv) => (
+                      <div
+                        key={iv.id}
+                        className="grid grid-cols-12 items-center gap-3 border-b border-[color:var(--color-border)] py-2 text-sm"
+                      >
+                        <div className="col-span-6">{iv.email}</div>
+                        <div className="col-span-3">{iv.role.toLowerCase()}</div>
+                        <div className="col-span-2">
+                          {new Date(iv.expiresAt).toLocaleDateString()}
+                        </div>
+                        <div className="col-span-1 text-right">
+                          {!readOnly && (
+                            <div className="flex items-center justify-end gap-2">
+                              <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={async () => {
+                                  await fetch(
+                                    `/api/orgs/${activeOrgId}/invitations/${iv.id}/resend`,
+                                    { method: 'POST' },
+                                  );
+                                }}
+                              >
+                                Resend
+                              </Button>
+                              <Button
+                                variant="danger"
+                                size="sm"
+                                onClick={async () => {
+                                  await fetch(`/api/orgs/${activeOrgId}/invitations/${iv.id}`, {
+                                    method: 'DELETE',
+                                  });
+                                  setInvites((prev) => prev.filter((x) => x.id !== iv.id));
+                                }}
+                              >
+                                Revoke
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))
                   )}
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-          </>
-        )}
-      </CardContent>
-    </Card>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
 
-    {/* Invite Modal per design system */}
-    {!readOnly && (
-      <Modal isOpen={inviteOpen} onClose={() => setInviteOpen(false)} title="Invite Member" size="sm">
-        <ModalContent>
-          <div className="space-y-4">
-            <Input label="Email" placeholder="user@example.com" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} />
-            <Select label="Role" value={inviteRole} onChange={(e) => setInviteRole(e.target.value as any)}>
-              <option value="ADMIN">Admin</option>
-              <option value="EDITOR">Editor</option>
-              <option value="VIEWER">Viewer</option>
-            </Select>
-          </div>
-        </ModalContent>
-        <ModalFooter>
-          <Button variant="secondary" onClick={() => setInviteOpen(false)}>
-            Cancel
-          </Button>
-          <Button
-            variant="primary"
-            onClick={async () => {
-              if (!inviteEmail || !activeOrgId) return;
-              const res = await fetch(`/api/orgs/${activeOrgId}/members/invite`, {
-                method: 'POST',
-                headers: { 'content-type': 'application/json' },
-                body: JSON.stringify({ email: inviteEmail, role: inviteRole }),
-              });
-              if (res.ok) {
-                const data = await res.json();
-                setInvites((prev) => [
-                  { id: data.id, email: inviteEmail, role: inviteRole, expiresAt: data.expiresAt, status: 'PENDING' },
-                  ...prev,
-                ]);
-                setInviteEmail('');
-                setInviteRole('VIEWER');
-                setInviteOpen(false);
-              }
-            }}
-          >
-            Send Invite
-          </Button>
-        </ModalFooter>
-      </Modal>
-    )}
+      {/* Invite Modal per design system */}
+      {!readOnly && (
+        <Modal
+          isOpen={inviteOpen}
+          onClose={() => setInviteOpen(false)}
+          title="Invite Member"
+          size="sm"
+        >
+          <ModalContent>
+            <div className="space-y-4">
+              <Input
+                label="Email"
+                placeholder="user@example.com"
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+              />
+              <Select
+                label="Role"
+                value={inviteRole}
+                onChange={(e) => setInviteRole(e.target.value as any)}
+              >
+                <option value="ADMIN">Admin</option>
+                <option value="EDITOR">Editor</option>
+                <option value="VIEWER">Viewer</option>
+              </Select>
+            </div>
+          </ModalContent>
+          <ModalFooter>
+            <Button variant="secondary" onClick={() => setInviteOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              onClick={async () => {
+                if (!inviteEmail || !activeOrgId) return;
+                const res = await fetch(`/api/orgs/${activeOrgId}/members/invite`, {
+                  method: 'POST',
+                  headers: { 'content-type': 'application/json' },
+                  body: JSON.stringify({ email: inviteEmail, role: inviteRole }),
+                });
+                if (res.ok) {
+                  const data = await res.json();
+                  setInvites((prev) => [
+                    {
+                      id: data.id,
+                      email: inviteEmail,
+                      role: inviteRole,
+                      expiresAt: data.expiresAt,
+                      status: 'PENDING',
+                    },
+                    ...prev,
+                  ]);
+                  setInviteEmail('');
+                  setInviteRole('VIEWER');
+                  setInviteOpen(false);
+                }
+              }}
+            >
+              Send Invite
+            </Button>
+          </ModalFooter>
+        </Modal>
+      )}
     </>
   );
 }

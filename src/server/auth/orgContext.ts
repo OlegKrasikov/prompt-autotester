@@ -1,7 +1,6 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/lib/auth';
-import { Flags } from '@/lib/featureFlags';
 
 export type OrgRole = 'ADMIN' | 'EDITOR' | 'VIEWER';
 
@@ -33,7 +32,7 @@ export async function resolveOrgContext(request: NextRequest): Promise<OrgContex
       update: {},
     });
     profile = { lastActiveOrgId: (p as any).lastActiveOrgId ?? null };
-  } catch (err) {
+  } catch {
     // If user_profile table doesn't exist yet, continue without profile
     profile = null;
   }
@@ -48,11 +47,18 @@ export async function resolveOrgContext(request: NextRequest): Promise<OrgContex
       },
     });
     for (const inv of pendingInvites) {
-      const existing = await prisma.organizationMember.findUnique({ where: { orgId_userId: { orgId: inv.orgId, userId } } });
+      const existing = await prisma.organizationMember.findUnique({
+        where: { orgId_userId: { orgId: inv.orgId, userId } },
+      });
       if (!existing) {
-        await prisma.organizationMember.create({ data: { orgId: inv.orgId, userId, role: inv.role, status: 'ACTIVE' } });
+        await prisma.organizationMember.create({
+          data: { orgId: inv.orgId, userId, role: inv.role, status: 'ACTIVE' },
+        });
       } else if (existing.status !== 'ACTIVE') {
-        await prisma.organizationMember.update({ where: { orgId_userId: { orgId: inv.orgId, userId } }, data: { status: 'ACTIVE', role: inv.role } });
+        await prisma.organizationMember.update({
+          where: { orgId_userId: { orgId: inv.orgId, userId } },
+          data: { status: 'ACTIVE', role: inv.role },
+        });
       }
       await prisma.organizationInvitation.update({
         where: { id: inv.id },
@@ -67,7 +73,7 @@ export async function resolveOrgContext(request: NextRequest): Promise<OrgContex
   });
   let activeOrgId = profile?.lastActiveOrgId || null;
 
-  if (memberships.length === 0 && Flags.shadow()) {
+  if (memberships.length === 0) {
     const personalName = `${session.user.name ?? session.user.email ?? 'Personal'}'s Workspace`;
     const slugBase = (session.user.name ?? session.user.email ?? 'personal')
       .toString()
@@ -92,7 +98,10 @@ export async function resolveOrgContext(request: NextRequest): Promise<OrgContex
     });
     activeOrgId = org.id;
     try {
-      await prisma.userProfile.update({ where: { userId }, data: { lastActiveOrgId: activeOrgId } });
+      await prisma.userProfile.update({
+        where: { userId },
+        data: { lastActiveOrgId: activeOrgId },
+      });
     } catch {}
   }
 
@@ -102,7 +111,10 @@ export async function resolveOrgContext(request: NextRequest): Promise<OrgContex
     if (first) {
       activeOrgId = first.orgId;
       try {
-        await prisma.userProfile.update({ where: { userId }, data: { lastActiveOrgId: activeOrgId } });
+        await prisma.userProfile.update({
+          where: { userId },
+          data: { lastActiveOrgId: activeOrgId },
+        });
       } catch {}
     }
   }

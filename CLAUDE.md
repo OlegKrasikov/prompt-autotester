@@ -15,6 +15,8 @@ Guidance for working with this repository.
 - `docs/testing.md`: Testing interface and simulation API
 - `docs/code-style.md`: Code style (Prettier + ESLint), editor, CI
 - `docs/architecture.md`: Layering, repository pattern, lint guardrails
+- `docs/orgs/*`: Organizations architecture, API, RBAC, UI
+- `docs/migrations/multi-org-plan.md`: Migration notes (flags removed; defaults enforced)
 
 ## Commands
 
@@ -37,6 +39,10 @@ npx prisma migrate dev --name <migration_name>
 
 # Install (generates Prisma client)
 npm i
+
+# Tests
+node --test               # runs RBAC + integration tests
+TEST_BASE_URL=http://localhost:3000 node --test   # if server already running
 ```
 
 ## Stack
@@ -60,6 +66,7 @@ npm i
 - API routes: The route handler context param is typed as `any` for broad Next.js compatibility.
 - Unified error shape via `src/server/http/responses.ts`.
 - Architecture guardrail: Services must not import Prisma or build Prisma queries. All DB access goes through `src/server/repos/*Repository.ts`. This is enforced by ESLint `no-restricted-imports` for `src/server/services/**` (blocking `@/lib/prisma` and `@prisma/client`).
+- Feature flags were removed. Multi‑org, RBAC, and invites are enforced by default.
 
 ## Core Flow
 
@@ -67,7 +74,7 @@ npm i
 - Configure OpenAI API key in Settings
 - On `/testing`, select a published prompt, edit an alternative, pick a scenario and model
 - Variables are resolved server-side; simulation streams via SSE for both prompts
-- Compare results; optionally overwrite the stored prompt with the edited content
+- Compare results; Admin/Editor can overwrite the stored prompt with the edited content; Viewer cannot
 
 ## Key Files
 
