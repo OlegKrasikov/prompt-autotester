@@ -12,10 +12,6 @@ export async function GET(request: NextRequest) {
     if (!ctx?.userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    if (!can(ctx as any, 'settings', 'settings')) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
     const apiKeys = await apiKeysService.listActive(ctx);
 
     return NextResponse.json({ apiKeys });

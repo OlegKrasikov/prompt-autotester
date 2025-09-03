@@ -2,10 +2,11 @@ import { NextRequest } from 'next/server';
 import { ScenarioListItem, ScenarioStatus } from '@/lib/types';
 import { serializeBigInt } from '@/lib/utils/bigint-serializer';
 import { requireOrgContext } from '@/server/auth/orgContext';
-import { okJson, serverError, errorJson } from '@/server/http/responses';
+import { okJson, serverError, errorJson, forbidden } from '@/server/http/responses';
 import { CreateScenarioSchema, ScenarioFiltersSchema } from '@/server/validation/schemas';
 import { getLogger } from '@/server/logging/logger';
 import { scenariosService } from '@/server/services/scenariosService';
+import { can } from '@/server/auth/rbac';
 
 export async function GET(request: NextRequest) {
   try {
@@ -33,6 +34,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const ctx = await requireOrgContext(request);
+    if (!can(ctx as any, 'write', 'scenarios')) return forbidden('Insufficient role');
 
     const json = await request.json();
     const body = CreateScenarioSchema.safeParse(json);

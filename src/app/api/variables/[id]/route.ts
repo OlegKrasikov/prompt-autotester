@@ -2,8 +2,9 @@ import { NextRequest } from 'next/server';
 import { serializeBigInt } from '@/lib/utils/bigint-serializer';
 import { requireOrgContext } from '@/server/auth/orgContext';
 import { UpdateVariableSchema } from '@/server/validation/schemas';
-import { okJson, notFound, errorJson, serverError } from '@/server/http/responses';
+import { okJson, notFound, errorJson, serverError, forbidden } from '@/server/http/responses';
 import { variablesService } from '@/server/services/variablesService';
+import { can } from '@/server/auth/rbac';
 
 export async function GET(request: NextRequest, { params }: any) {
   try {
@@ -28,6 +29,7 @@ export async function GET(request: NextRequest, { params }: any) {
 export async function PUT(request: NextRequest, { params }: any) {
   try {
     const ctx = await requireOrgContext(request);
+    if (!can(ctx as any, 'write', 'variables')) return forbidden('Insufficient role');
 
     const json = await request.json();
     const body = UpdateVariableSchema.safeParse(json);
@@ -59,6 +61,7 @@ export async function PUT(request: NextRequest, { params }: any) {
 export async function DELETE(request: NextRequest, { params }: any) {
   try {
     const ctx = await requireOrgContext(request);
+    if (!can(ctx as any, 'write', 'variables')) return forbidden('Insufficient role');
 
     const removed = await variablesService.remove(ctx, params.id);
     if (removed.error) {

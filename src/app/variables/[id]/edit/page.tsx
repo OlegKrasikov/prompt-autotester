@@ -17,6 +17,7 @@ interface EditVariablePageProps {
 export default function EditVariablePage({ params }: EditVariablePageProps) {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
+  const [orgRole, setOrgRole] = React.useState<'ADMIN'|'EDITOR'|'VIEWER'|null>(null);
   const [variable, setVariable] = React.useState<VariableFull | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [formData, setFormData] = React.useState<UpdateVariableRequest>({
@@ -34,6 +35,25 @@ export default function EditVariablePage({ params }: EditVariablePageProps) {
       router.replace(`/login?redirect=/variables/${resolvedParams.id}/edit`);
     }
   }, [isPending, session, router, resolvedParams.id]);
+
+  React.useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch('/api/orgs');
+        if (res.ok) {
+          const data: Array<{ id: string; role: 'ADMIN'|'EDITOR'|'VIEWER'; isActive: boolean }> = await res.json();
+          const active = data.find((o) => o.isActive) || data[0];
+          if (active) setOrgRole(active.role);
+          return;
+        }
+      } catch {}
+      const cookie = document.cookie.split('; ').find((c) => c.startsWith('pa_org_role='));
+      if (cookie) {
+        const role = decodeURIComponent(cookie.split('=')[1]) as any;
+        if (role === 'ADMIN' || role === 'EDITOR' || role === 'VIEWER') setOrgRole(role);
+      }
+    })();
+  }, []);
 
   const fetchVariable = React.useCallback(async () => {
     try {
@@ -118,7 +138,7 @@ export default function EditVariablePage({ params }: EditVariablePageProps) {
     router.push('/variables');
   };
 
-  if (!session) return null;
+  if (!session || orgRole === 'VIEWER') return null;
 
   if (loading) {
     return (

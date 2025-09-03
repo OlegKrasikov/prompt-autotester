@@ -1,13 +1,15 @@
 import { NextRequest } from 'next/server';
 import { serializeBigInt } from '@/lib/utils/bigint-serializer';
 import { requireOrgContext } from '@/server/auth/orgContext';
-import { okJson, notFound, serverError } from '@/server/http/responses';
+import { okJson, notFound, serverError, forbidden } from '@/server/http/responses';
 import { prisma } from '@/lib/prisma';
+import { can } from '@/server/auth/rbac';
 
 export async function POST(request: NextRequest, { params }: any) {
   const resolvedParams = params;
   try {
     const ctx = await requireOrgContext(request);
+    if (!can(ctx as any, 'write', 'prompts')) return forbidden('Insufficient role');
 
     // Check if prompt exists and belongs to user
     const existingPrompt = await prisma.prompt.findFirst({

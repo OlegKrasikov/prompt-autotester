@@ -63,6 +63,9 @@ interface TestingMainContentProps {
     loading: boolean;
     error: string | null;
   };
+
+  // Permissions
+  allowPromptUpdate?: boolean;
 }
 
 export function TestingMainContent({
@@ -87,6 +90,7 @@ export function TestingMainContent({
   streamingState,
   error,
   scenariosData,
+  allowPromptUpdate = true,
 }: TestingMainContentProps) {
   const router = React.useMemo(
     () => ({
@@ -105,7 +109,8 @@ export function TestingMainContent({
   const [isOverwriting, setIsOverwriting] = React.useState(false);
 
   // Check if prompts are different and results exist to show overwrite button
-  const canOverwrite = selectedPromptId && sim && oldPrompt !== newPrompt && !loading;
+  const canOverwrite =
+    allowPromptUpdate && selectedPromptId && sim && oldPrompt !== newPrompt && !loading;
 
   const handleOverwriteClick = () => {
     confirmModal.open(selectedPromptId, 'current prompt');

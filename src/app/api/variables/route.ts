@@ -1,10 +1,11 @@
 import { NextRequest } from 'next/server';
 import { VariableListItem } from '@/lib/types';
 import { requireOrgContext } from '@/server/auth/orgContext';
-import { okJson, errorJson, serverError } from '@/server/http/responses';
+import { okJson, errorJson, serverError, forbidden } from '@/server/http/responses';
 import { CreateVariableSchema, VariableFiltersSchema } from '@/server/validation/schemas';
 import { getLogger } from '@/server/logging/logger';
 import { variablesService } from '@/server/services/variablesService';
+import { can } from '@/server/auth/rbac';
 
 export async function GET(request: NextRequest) {
   try {
@@ -39,6 +40,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const ctx = await requireOrgContext(request);
+    if (!can(ctx as any, 'write', 'variables')) return forbidden('Insufficient role');
 
     const json = await request.json();
     const body = CreateVariableSchema.safeParse(json);

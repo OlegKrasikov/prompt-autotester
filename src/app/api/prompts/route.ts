@@ -1,10 +1,11 @@
 import { NextRequest } from 'next/server';
 import { PromptStatus } from '@/lib/types';
 import { requireOrgContext } from '@/server/auth/orgContext';
-import { okJson, serverError, errorJson } from '@/server/http/responses';
+import { okJson, serverError, errorJson, forbidden } from '@/server/http/responses';
 import { PromptFiltersSchema } from '@/server/validation/schemas';
 import { getLogger } from '@/server/logging/logger';
 import { promptsService } from '@/server/services/promptsService';
+import { can } from '@/server/auth/rbac';
 
 export async function GET(request: NextRequest) {
   try {
@@ -31,6 +32,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const ctx = await requireOrgContext(request);
+    if (!can(ctx as any, 'write', 'prompts')) return forbidden('Insufficient role');
 
     const json = await request.json();
     const created = await promptsService.create(ctx, json);

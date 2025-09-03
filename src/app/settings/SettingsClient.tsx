@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -8,6 +8,7 @@ import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { Modal, ModalContent, ModalFooter } from '@/components/ui/Modal';
 import { Select } from '@/components/ui/Select';
 import { useModal } from '@/hooks/useModal';
+import { authClient } from '@/lib/auth-client';
 import { Spinner } from '@/components/ui/Spinner';
 
 interface ApiKey {
@@ -304,6 +305,9 @@ function OrganizationMembersSection({ readOnly }: { readOnly: boolean }) {
   const [updatingRoleIds, setUpdatingRoleIds] = useState<Set<string>>(new Set());
   const [removingIds, setRemovingIds] = useState<Set<string>>(new Set());
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  // current user id for self/last-admin detection
+  const { data: session } = authClient.useSession();
+  const currentUserId = (session?.user?.id as string | undefined) || undefined;
 
   useEffect(() => {
     (async () => {
@@ -417,7 +421,11 @@ function OrganizationMembersSection({ readOnly }: { readOnly: boolean }) {
             <Spinner size="sm" />
             <span className="text-sm">Loading members…</span>
           </div>
-        ) : members.map((m) => (
+        ) : members.map((m) => {
+            const adminCount = members.filter((x) => x.role === 'ADMIN').length;
+            const isSelf = currentUserId && m.userId === currentUserId;
+            const isLastAdminSelf = isSelf && m.role === 'ADMIN' && adminCount <= 1;
+            return (
           <div key={m.userId} className="grid grid-cols-12 items-center gap-3 border-b border-[color:var(--color-border)] py-2 text-sm">
             <div className="col-span-5">{m.name || '—'}</div>
             <div className="col-span-4">{m.email}</div>
@@ -428,9 +436,14 @@ function OrganizationMembersSection({ readOnly }: { readOnly: boolean }) {
                 <select
                   className="rounded border border-[color:var(--color-border)] px-2 py-1 text-xs disabled:opacity-60"
                   value={m.role}
-                  disabled={updatingRoleIds.has(m.userId)}
+                  disabled={updatingRoleIds.has(m.userId) || isLastAdminSelf}
                   onChange={async (e) => {
                     const nextRole = e.target.value as 'ADMIN' | 'EDITOR' | 'VIEWER';
+                    if (isLastAdminSelf) {
+                      setFeedback({ type: 'error', message: 'Cannot change role: you are the last admin' });
+                      setTimeout(() => setFeedback(null), 2500);
+                      return;
+                    }
                     // optimistic UI with loading state per row
                     setUpdatingRoleIds((prev) => new Set(prev).add(m.userId));
                     try {
@@ -443,8 +456,12 @@ function OrganizationMembersSection({ readOnly }: { readOnly: boolean }) {
                         setMembers((prev) => prev.map((x) => (x.userId === m.userId ? { ...x, role: nextRole } : x)));
                         setFeedback({ type: 'success', message: 'Member role updated' });
                       } else {
-                        // revert UI and show error
-                        setFeedback({ type: 'error', message: 'Failed to update role' });
+                        let msg = 'Failed to update role';
+                        try {
+                          const data = await res.json();
+                          msg = data?.error?.message || msg;
+                        } catch {}
+                        setFeedback({ type: 'error', message: msg });
                       }
                     } catch {
                       setFeedback({ type: 'error', message: 'Failed to update role' });
@@ -470,8 +487,13 @@ function OrganizationMembersSection({ readOnly }: { readOnly: boolean }) {
                 <Button
                   variant="danger"
                   size="sm"
-                  disabled={removingIds.has(m.userId)}
+                  disabled={removingIds.has(m.userId) || isLastAdminSelf}
                   onClick={async () => {
+                    if (isLastAdminSelf) {
+                      setFeedback({ type: 'error', message: 'Cannot remove the last Admin' });
+                      setTimeout(() => setFeedback(null), 2500);
+                      return;
+                    }
                     setRemovingIds((prev) => new Set(prev).add(m.userId));
                     try {
                       const res = await fetch(`/api/orgs/${activeOrgId}/members/${m.userId}`, { method: 'DELETE' });
@@ -479,7 +501,12 @@ function OrganizationMembersSection({ readOnly }: { readOnly: boolean }) {
                         setMembers((prev) => prev.filter((x) => x.userId !== m.userId));
                         setFeedback({ type: 'success', message: 'Member removed' });
                       } else {
-                        setFeedback({ type: 'error', message: 'Failed to remove member' });
+                        let msg = 'Failed to remove member';
+                        try {
+                          const data = await res.json();
+                          msg = data?.error?.message || msg;
+                        } catch {}
+                        setFeedback({ type: 'error', message: msg });
                       }
                     } catch {
                       setFeedback({ type: 'error', message: 'Failed to remove member' });
@@ -498,7 +525,8 @@ function OrganizationMembersSection({ readOnly }: { readOnly: boolean }) {
               )}
             </div>
           </div>
-        ))}
+        );
+        })}
 
         {(invitesLoading || invites.length > 0) && (
           <div className="mt-6">

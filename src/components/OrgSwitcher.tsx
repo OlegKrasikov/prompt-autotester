@@ -6,7 +6,12 @@ import { Select } from '@/components/ui/Select';
 
 type Org = { id: string; name: string; role: 'ADMIN' | 'EDITOR' | 'VIEWER'; isActive: boolean };
 
-export function OrgSwitcher() {
+interface OrgSwitcherProps {
+  label?: string;
+  className?: string;
+}
+
+export function OrgSwitcher({ label = 'Organization', className }: OrgSwitcherProps) {
   const [orgs, setOrgs] = useState<Org[]>([]);
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState<string | undefined>();
@@ -42,8 +47,8 @@ export function OrgSwitcher() {
   if (loading || orgs.length === 0) return null;
 
   return (
-    <div className="min-w-[180px]">
-      <Select label="Organization" value={active} onChange={(e) => onChange(e.target.value)}>
+    <div className={className ?? 'min-w-[180px]'}>
+      <Select label={label} value={active} onChange={(e) => onChange(e.target.value)}>
         {orgs.map((o) => (
           <option key={o.id} value={o.id}>
             {o.name} ({o.role.toLowerCase()})

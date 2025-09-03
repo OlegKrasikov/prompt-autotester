@@ -13,11 +13,13 @@ import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { AlertModal } from '@/components/ui/AlertModal';
 import { useAlertModal } from '@/hooks/useModal';
 import { useConfirmModal } from '@/hooks/useModal';
+import { Spinner } from '@/components/ui/Spinner';
 //
 
 export default function ScenariosPage() {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
+  const [orgRole, setOrgRole] = React.useState<'ADMIN'|'EDITOR'|'VIEWER'|null>(null);
   const [scenarios, setScenarios] = React.useState<ScenarioListItem[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [filters, setFilters] = React.useState<ScenarioFilters>({});
@@ -29,6 +31,25 @@ export default function ScenariosPage() {
       router.replace('/login?redirect=/scenarios');
     }
   }, [isPending, session, router]);
+
+  React.useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch('/api/orgs');
+        if (res.ok) {
+          const data: Array<{ id: string; role: 'ADMIN'|'EDITOR'|'VIEWER'; isActive: boolean }> = await res.json();
+          const active = data.find((o) => o.isActive) || data[0];
+          if (active) setOrgRole(active.role);
+          return;
+        }
+      } catch {}
+      const cookie = document.cookie.split('; ').find((c) => c.startsWith('pa_org_role='));
+      if (cookie) {
+        const role = decodeURIComponent(cookie.split('=')[1]) as any;
+        if (role === 'ADMIN' || role === 'EDITOR' || role === 'VIEWER') setOrgRole(role);
+      }
+    })();
+  }, []);
 
   const fetchScenarios = React.useCallback(async () => {
     setLoading(true);
@@ -216,6 +237,8 @@ export default function ScenariosPage() {
 
   if (!session) return null;
 
+  const isViewer = orgRole === 'VIEWER';
+
   return (
     <div className="min-h-screen bg-[color:var(--color-background)] p-6">
       <div className="mx-auto max-w-7xl space-y-6">
@@ -246,10 +269,15 @@ export default function ScenariosPage() {
             </p>
           </div>
 
-          <Button onClick={() => router.push('/scenarios/new')}>
-            <svg
-              width="16"
-              height="16"
+          {orgRole === null ? (
+            <div className="flex items-center gap-2 text-[color:var(--color-muted-foreground)]">
+              <Spinner size="sm" />
+            </div>
+          ) : !isViewer ? (
+            <Button onClick={() => router.push('/scenarios/new')}>
+              <svg
+                width="16"
+                height="16"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -261,8 +289,9 @@ export default function ScenariosPage() {
               <path d="M5 12h14" />
               <path d="M12 5v14" />
             </svg>
-            New Scenario
-          </Button>
+              New Scenario
+            </Button>
+          ) : null}
         </div>
 
         {/* Filters */}
@@ -358,12 +387,16 @@ export default function ScenariosPage() {
                   Create your first test scenario to start comparing prompts with realistic
                   conversation flows.
                 </p>
-                <button
-                  onClick={() => router.push('/scenarios/new')}
-                  className="rounded-[var(--radius)] bg-[color:var(--color-accent)] px-4 py-2 text-white transition-colors hover:bg-[color:var(--color-accent-hover)]"
-                >
-                  Create First Scenario
-                </button>
+                {orgRole === null ? (
+                  <div className="mx-auto h-9 w-56 animate-pulse rounded-[var(--radius)] bg-[color:var(--color-surface-1)]" />
+                ) : !isViewer ? (
+                  <button
+                    onClick={() => router.push('/scenarios/new')}
+                    className="rounded-[var(--radius)] bg-[color:var(--color-accent)] px-4 py-2 text-white transition-colors hover:bg-[color:var(--color-accent-hover)]"
+                  >
+                    Create First Scenario
+                  </button>
+                ) : null}
               </div>
             </CardContent>
           </Card>
@@ -392,9 +425,11 @@ export default function ScenariosPage() {
                       <th className="px-6 py-4 text-left text-xs font-semibold tracking-wider text-[color:var(--color-foreground)] uppercase">
                         Updated
                       </th>
-                      <th className="px-6 py-4 text-right text-xs font-semibold tracking-wider text-[color:var(--color-foreground)] uppercase">
-                        Actions
-                      </th>
+                      {(orgRole === null || !isViewer) && (
+                        <th className="px-6 py-4 text-right text-xs font-semibold tracking-wider text-[color:var(--color-foreground)] uppercase">
+                          Actions
+                        </th>
+                      )}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[color:var(--color-divider)]">
@@ -438,75 +473,81 @@ export default function ScenariosPage() {
                             })}
                           </span>
                         </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center justify-end gap-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => router.push(`/scenarios/${scenario.id}/edit`)}
-                            >
-                              <svg
-                                width="14"
-                                height="14"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="mr-1"
+                        {(orgRole === null || !isViewer) && (
+                          <td className="px-6 py-4">
+                            {orgRole === null ? (
+                              <div className="ml-auto h-8 w-48 animate-pulse rounded-[var(--radius)] bg-[color:var(--color-surface-1)]" />
+                            ) : (
+                              <div className="flex items-center justify-end gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => router.push(`/scenarios/${scenario.id}/edit`)}
                               >
-                                <path d="M12 22h6a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v10" />
-                                <path d="M14 2v4a2 2 0 0 0 2 2h4" />
-                                <path d="M10.4 12.6a2 2 0 1 1 3 3L8 21l-4 1 1-4Z" />
-                              </svg>
-                              Edit
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDuplicate(scenario.id)}
-                            >
-                              <svg
-                                width="14"
-                                height="14"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="mr-1"
+                                <svg
+                                  width="14"
+                                  height="14"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  className="mr-1"
+                                >
+                                  <path d="M12 22h6a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v10" />
+                                  <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+                                  <path d="M10.4 12.6a2 2 0 1 1 3 3L8 21l-4 1 1-4Z" />
+                                </svg>
+                                Edit
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDuplicate(scenario.id)}
                               >
-                                <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
-                                <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
-                              </svg>
-                              Copy
-                            </Button>
-                            <Button
-                              variant="danger"
-                              size="sm"
-                              onClick={() => handleDeleteClick(scenario.id, scenario.name)}
-                            >
-                              <svg
-                                width="14"
-                                height="14"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="mr-1"
+                                <svg
+                                  width="14"
+                                  height="14"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  className="mr-1"
+                                >
+                                  <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+                                  <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+                                </svg>
+                                Copy
+                              </Button>
+                              <Button
+                                variant="danger"
+                                size="sm"
+                                onClick={() => handleDeleteClick(scenario.id, scenario.name)}
                               >
-                                <path d="M3 6h18" />
-                                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-                                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-                              </svg>
-                              Delete
-                            </Button>
-                          </div>
-                        </td>
+                                <svg
+                                  width="14"
+                                  height="14"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  className="mr-1"
+                                >
+                                  <path d="M3 6h18" />
+                                  <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                                  <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                                </svg>
+                                Delete
+                              </Button>
+                              </div>
+                            )}
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>

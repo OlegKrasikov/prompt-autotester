@@ -1,10 +1,11 @@
 import { NextRequest } from 'next/server';
 import { serializeBigInt } from '@/lib/utils/bigint-serializer';
 import { requireOrgContext } from '@/server/auth/orgContext';
-import { okJson, notFound, serverError, errorJson } from '@/server/http/responses';
+import { okJson, notFound, serverError, errorJson, forbidden } from '@/server/http/responses';
 import { UpdateScenarioSchema } from '@/server/validation/schemas';
 import { getLogger } from '@/server/logging/logger';
 import { scenariosService } from '@/server/services/scenariosService';
+import { can } from '@/server/auth/rbac';
 
 export async function GET(request: NextRequest, { params }: any) {
   try {
@@ -30,6 +31,7 @@ export async function GET(request: NextRequest, { params }: any) {
 export async function PUT(request: NextRequest, { params }: any) {
   try {
     const ctx = await requireOrgContext(request);
+    if (!can(ctx as any, 'write', 'scenarios')) return forbidden('Insufficient role');
 
     const { id } = params;
     const raw = await request.json();
@@ -55,6 +57,7 @@ export async function PUT(request: NextRequest, { params }: any) {
 export async function DELETE(request: NextRequest, { params }: any) {
   try {
     const ctx = await requireOrgContext(request);
+    if (!can(ctx as any, 'write', 'scenarios')) return forbidden('Insufficient role');
 
     const { id } = params;
     const removed = await scenariosService.remove(ctx, id);

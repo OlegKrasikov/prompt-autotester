@@ -2,8 +2,9 @@ import { NextRequest } from 'next/server';
 import { serializeBigInt } from '@/lib/utils/bigint-serializer';
 import { requireOrgContext } from '@/server/auth/orgContext';
 import { UpdatePromptSchema } from '@/server/validation/schemas';
-import { okJson, notFound, errorJson, serverError } from '@/server/http/responses';
+import { okJson, notFound, errorJson, serverError, forbidden } from '@/server/http/responses';
 import { promptsService } from '@/server/services/promptsService';
+import { can } from '@/server/auth/rbac';
 
 export async function GET(request: NextRequest, { params }: any) {
   const resolvedParams = params;
@@ -30,6 +31,7 @@ export async function PUT(request: NextRequest, { params }: any) {
   const resolvedParams = params;
   try {
     const ctx = await requireOrgContext(request);
+    if (!can(ctx as any, 'write', 'prompts')) return forbidden('Insufficient role');
 
     const json = await request.json();
     const body = UpdatePromptSchema.safeParse(json);
@@ -59,6 +61,7 @@ export async function DELETE(request: NextRequest, { params }: any) {
   const resolvedParams = params;
   try {
     const ctx = await requireOrgContext(request);
+    if (!can(ctx as any, 'write', 'prompts')) return forbidden('Insufficient role');
 
     const removed = await promptsService.remove(ctx, resolvedParams.id);
     if (removed.error) return notFound('Prompt not found');
